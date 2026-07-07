@@ -1,16 +1,5 @@
-import Nav from "./components/Nav.tsx"
-
-export default function Root({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MainContent() {
   return (
-    <html lang="ru">
-      <body>
-        <Nav />
-        {children}
-      </body>
-    </html>
+    <h1> Привет, я Артём! </h1>
   );
-}
+};
