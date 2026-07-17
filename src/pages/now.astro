@@ -1,0 +1,358 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+function escapeHtml(str: string) {
+	return str.replace(
+		/[&<>"]/g,
+		(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!,
+	);
+}
+
+// "---" -> длинное тире, "--" -> среднее, одиночный "-" не трогаем
+function typographicDashes(str: string) {
+	return str.replace(/---/g, '—').replace(/--/g, '–');
+}
+
+// [текст](url) -> <a href="url">текст</a>
+function formatDetails(str: string) {
+	const withDashes = typographicDashes(escapeHtml(str));
+	return withDashes.replace(
+		/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+		'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+	);
+}
+
+const events: { date: string; title: string; details?: string }[] = [
+	{
+		date: 'Июль 2026',
+		title: 'Git init этого сайта',
+		details:
+    'Количество свободного времени и потребность в удобной площадке для размещения своих идей и мыслей превысило некий порог, благодаря чему я стартовал это пространство.',
+	},
+	{
+		date: 'Июнь 2026',
+		title: 'Курсовая по распределённым системам',
+		details:
+    'Тема: применение Merkle DAG для синхронизации данных реплик. Фактически, распределённая LWW-map с Merkle DAG и протоколом синхронизации, вдохновлённым Any-sync.',
+	},
+	{
+		date: 'Апрель 2026',
+		title: 'Организация "DiscoHack"',
+		details:
+			'Организовал региональный чемпионат по продуктовому программированию при поддержке Министерства Цифровизации Саратовской области и Федерации спортивного программирования.',
+  },
+  {
+    date: 'Март 2026',
+    title: 'Организация псевдонаучной конференции',
+    details: 'Организовал псевдонаучную конференцию на факультете КНиИТ.',
+  },
+  {
+    date: 'Зима 2026',
+    title: 'Интерес к распределённым системам',
+    details: 'Использование Anytype, поиск темы для курсовой, рекомендации товарищей --- всё это подталкивает сначала к знакомству, затем к заинтересованности в распределённых системах.',
+    },
+  {
+    date: 'Ноябрь 2025',
+    title: 'Организация "#ВСЁСЛОЖНО',
+    details: 'Организовал факультетский образовательный хакатон.',
+  },
+  {
+    date: 'Июнь 2025',
+    title: 'Курсовая по рантайму Golang',
+    details: 'Изучал влияние GOMAXPROCS на производительность системы.',
+  },
+  {
+    date: 'Весна 2024 -- Весна 2025',
+    title: 'Интерес к веб-разработке',
+    details: 'После первого опыта хакатонов, я с друзьями увлёкся веб-разработкой, в частности её backend- частью. На втором курсе мы организовали клуб веб-разработки на факультете, где читали лекции и устраивали практические занятия в формате мини-хакатонов.',
+    },
+    {
+    date: 'Июль 2024',
+    title: 'Вступление в Студенческие клубы разработки',
+    details: '[ТЫК](https://dsc.alivetech.org/).',
+    },
+  {
+    date: 'Февраль 2024',
+    title: 'Участие в первом хакатоне',
+    details: 'Не хотел идти, потому что ничего не знал в разработке. Но друзья уговорили. А затем понеслось...',
+    },
+    {
+    date: 'Сентябрь 2023',
+    title: 'Поступление на факультет',
+  }
+
+];
+---
+
+<Layout>
+	<main>
+		<section class="present">
+			<p class="present-eyebrow">Сейчас</p>
+			<h1 class="present-text">
+				Интересуюсь распределёнными системами. Выбираю тему диплома, связанную с ними.
+			</h1>
+		</section>
+
+		<div class="bridge">
+			<span class="bridge-line" aria-hidden="true"></span>
+			<p class="lead">В предыдущих сериях...</p>
+			<span class="bridge-line" aria-hidden="true"></span>
+		</div>
+
+		<ol class="timeline">
+			{
+				events.map((event, i) => (
+					<li class={`entry ${i % 2 === 0 ? 'entry-left' : 'entry-right'}`} tabindex="0">
+						<div class="content">
+							<span class="date">{typographicDashes(event.date)}</span>
+							<h2 class="title">{typographicDashes(event.title)}</h2>
+							{event.details && <p class="details" set:html={formatDetails(event.details)} />}
+						</div>
+						<span class="dot" aria-hidden="true" />
+					</li>
+				))
+			}
+		</ol>
+	</main>
+</Layout>
+
+<style>
+	main {
+		max-width: 960px;
+		margin: 8vh auto 0;
+		padding: 16px;
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+	}
+
+	.present {
+		text-align: center;
+		padding: 6vh 0 0;
+	}
+
+	.present-eyebrow {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #b45309;
+		margin: 0 0 0.8em;
+	}
+
+	.present-text {
+		font-size: 34px;
+		line-height: 1.4;
+		color: #111827;
+		font-weight: 500;
+		max-width: 26ch;
+		margin: 0 auto;
+	}
+
+	.bridge {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+
+	.bridge-line {
+		width: 2px;
+		height: 2.5em;
+		background: #e5e7eb;
+	}
+
+	.lead {
+		font-size: 19px;
+		line-height: 1.7;
+		color: #4b5563;
+		margin: 0.8em 0;
+		max-width: 40ch;
+	}
+
+	.timeline {
+		position: relative;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.timeline::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 50%;
+		width: 2px;
+		background: #e5e7eb;
+		transform: translateX(-50%);
+	}
+
+	.entry {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1fr 56px 1fr;
+		align-items: start;
+		padding-bottom: 5em;
+		cursor: default;
+	}
+
+	.entry:last-child {
+		padding-bottom: 0;
+	}
+
+	.content {
+		grid-column: 1;
+		text-align: right;
+		padding-right: 8px;
+	}
+
+	.entry-right .content {
+		grid-column: 3;
+		text-align: left;
+		padding-right: 0;
+		padding-left: 8px;
+	}
+
+	.dot {
+		grid-column: 2;
+		justify-self: center;
+		margin-top: 6px;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: #faf7f2;
+		border: 2px solid #d1d5db;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease,
+			transform 0.2s ease;
+	}
+
+	.entry:hover .dot,
+	.entry:focus-within .dot,
+	.entry:focus .dot {
+		border-color: #b45309;
+		background: #b45309;
+		transform: scale(1.15);
+	}
+
+	.date {
+		display: block;
+		font-size: 14px;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #9ca3af;
+		margin-bottom: 0.5em;
+	}
+
+	.title {
+		font-size: 24px;
+		font-weight: 600;
+		margin: 0;
+		color: #9ca3af;
+		transition: color 0.2s ease;
+	}
+
+	.entry:hover .title,
+	.entry:focus-within .title,
+	.entry:focus .title {
+		color: #b45309;
+	}
+
+	.details {
+		font-size: 17px;
+		line-height: 1.6;
+		color: #4b5563;
+		margin: 0.7em 0 0;
+		max-height: 0;
+		opacity: 0;
+		overflow: hidden;
+		transition:
+			max-height 0.3s ease,
+			opacity 0.25s ease,
+			margin 0.3s ease;
+	}
+
+	.entry:hover .details,
+	.entry:focus-within .details,
+	.entry:focus .details {
+		max-height: 12em;
+		opacity: 1;
+	}
+
+	/* сворачивание "сейчас" и прорастание линии таймлайна при скролле */
+	@supports (animation-timeline: view()) {
+		.present {
+			animation: present-fade linear both;
+			animation-timeline: view();
+			animation-range: exit 0% exit 100%;
+		}
+
+		.timeline::before {
+			transform-origin: top;
+			animation: grow-line linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 70%;
+		}
+	}
+
+	@keyframes present-fade {
+		from {
+			opacity: 1;
+			transform: none;
+		}
+		to {
+			opacity: 0.2;
+			transform: translateY(-10px) scale(0.97);
+		}
+	}
+
+	@keyframes grow-line {
+		from {
+			transform: translateX(-50%) scaleY(0);
+		}
+		to {
+			transform: translateX(-50%) scaleY(1);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.details,
+		.dot,
+		.present,
+		.timeline::before {
+			transition: none;
+			animation: none !important;
+		}
+	}
+
+	@media screen and (max-width: 640px) {
+		.present-text {
+			font-size: 26px;
+		}
+
+		.entry,
+		.entry-right {
+			grid-template-columns: 40px 1fr;
+			padding-bottom: 3em;
+		}
+
+		.timeline::before {
+			left: 19px;
+		}
+
+		.content,
+		.entry-right .content {
+			grid-column: 2;
+			text-align: left;
+			padding-left: 16px;
+			padding-right: 0;
+		}
+
+		.dot,
+		.entry-right .dot {
+			grid-column: 1;
+			grid-row: 1;
+		}
+	}
+</style>
