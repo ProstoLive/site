@@ -1,0 +1,81 @@
+---
+const links = [
+	{ href: '/', label: 'Главная' },
+	{ href: '/blog', label: 'Блог' },
+	{ href: '/about', label: 'Обо мне' },
+	{ href: '/contacts', label: 'Контакты' },
+	{ href: '/now', label: 'Сейчас' },
+];
+
+const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+	return href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+}
+---
+
+<header id="navbar">
+	<nav>
+		<ul>
+			{
+				links.map((link) => (
+					<li>
+						<a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+							{link.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+</header>
+
+<style>
+	#navbar {
+		display: flex;
+		justify-content: center;
+		padding: 16px;
+	}
+
+	nav {
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+	}
+
+	ul {
+		display: flex;
+		gap: 8px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	a {
+		display: inline-block;
+		padding: 8px 14px;
+		border-radius: 8px;
+		color: #4b5563;
+		text-decoration: none;
+		font-size: 15px;
+		transition:
+			color 0.2s,
+			background 0.2s;
+	}
+
+	a:hover {
+		color: #111827;
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	a[aria-current='page'] {
+		color: #111827;
+		background: rgba(0, 0, 0, 0.08);
+		font-weight: 600;
+	}
+
+	@media screen and (max-width: 480px) {
+		ul {
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+	}
+</style>
