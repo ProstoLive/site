@@ -4,28 +4,122 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
 	<main>
-		<h1>Привет, я Артём</h1>
-		<p>Здесь будет мой личный сайт.</p>
+    <h1>Привет, я Артём</h1>
+    <p class="intro">Добро пожаловать в моё пространство внутри сети Интернет. Думаю, вы найдёте тут много интересного</p>
+
+		<section id="highlights">
+			<article id="cv">
+				<h2>Вы HR?</h2>
+				<p>Ознакомьтесь с моим резюме.</p>
+				<div class="links">
+					<a href="/cv-en.pdf">CV (EN)</a>
+					<a href="/cv-ru.pdf">CV (RU)</a>
+				</div>
+			</article>
+
+			<article id="blog">
+				<h2>Вам интересна моя жизнь?</h2>
+				<p>Зайдите в мой блог.</p>
+				<a class="arrow" href="/blog">Читать</a>
+			</article>
+
+			<article id="about">
+				<h2>Мы не знакомы?</h2>
+				<p>Давайте я расскажу о себе и мы это исправим.</p>
+				<a class="arrow" href="/about">Познакомиться</a>
+			</article>
+		</section>
 	</main>
 </Layout>
 
 <style>
 	main {
-		max-width: 640px;
-		margin: 10vh auto 0;
+		max-width: 880px;
+		margin: 8vh auto 0;
 		padding: 16px;
-		text-align: center;
 		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
 	h1 {
 		font-size: 32px;
-		margin-bottom: 0.5em;
+		margin: 0 0 0.5em;
+		color: #111827;
+	}
+
+	.intro {
+		margin: 0 0 2em;
+	}
+
+	#highlights {
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		grid-template-rows: 1fr 1fr;
+		border: 1px solid #111827;
+	}
+
+	article {
+		padding: 32px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	#cv {
+		grid-row: 1 / 3;
+		border-right: 1px solid #111827;
+		justify-content: center;
+	}
+
+	#blog {
+		border-bottom: 1px solid #111827;
+	}
+
+	h2 {
+		font-size: 20px;
+		margin: 0;
 		color: #111827;
 	}
 
 	p {
+		margin: 0;
 		color: #4b5563;
-		font-size: 18px;
+		font-size: 16px;
+	}
+
+	.links {
+		display: flex;
+		gap: 16px;
+		margin-top: 8px;
+	}
+
+	a {
+		color: #111827;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	a:hover {
+		color: #4b5563;
+	}
+
+	a.arrow {
+		margin-top: 8px;
+	}
+
+	a.arrow::after {
+		content: ' →';
+	}
+
+	@media screen and (max-width: 640px) {
+		#highlights {
+			grid-template-columns: 1fr;
+			grid-template-rows: none;
+		}
+
+		#cv {
+			grid-row: auto;
+			border-right: none;
+			border-bottom: 1px solid #111827;
+		}
 	}
 </style>

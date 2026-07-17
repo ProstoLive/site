@@ -1,0 +1,120 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+	<main>
+		<h1>Обо мне</h1>
+
+		<p class="lead">
+			Привет! Меня зовут Артём, я студент, программист, активист, но прежде всего <strong>человек</strong>.
+		</p>
+		<p>
+			Я учусь в Саратовском государственном университете имени Н. Г. Чернышевского, активно
+			интересуюсь IT и стараюсь заинтересовывать в этой сфере других людей.
+			Я обожаю видеоигры, картины, прогулки и многочасовые дискуссии на самые спорные (и не очень)
+			темы.
+		</p>
+
+		<p>Это пространство было создано мной как универсальное решение следующих проблем:</p>
+		<div class="reasons">
+			<div class="reason">
+				<span class="num">01</span>
+				<p>
+					Я хотел иметь собственный сайт-визитку в сети, чтобы не зависеть от сторонних платформ,
+					хранящих мои данные.
+				</p>
+			</div>
+			<div class="reason">
+				<span class="num">02</span>
+				<p>
+					Я хотел иметь место, где смогу свободно писать и делиться своими мыслями, так как канал
+					в любой из соцсетей не устраивает меня своим ограниченным функционалом.
+				</p>
+			</div>
+			<div class="reason">
+				<span class="num">03</span>
+				<p>
+					Я хотел иметь песочницу, в которой смогу лепить замки любых форм и масштабов и делиться
+					ими с людьми.
+				</p>
+			</div>
+		</div>
+
+		<p>
+			Я также выступаю за Local-first, Open-source, а это пространство реализует принцип POSSE
+			(Publish on own site, syndicate elsewhere).
+		</p>
+	</main>
+</Layout>
+
+<style>
+	main {
+		max-width: 860px;
+		margin: 8vh auto 0;
+		padding: 16px;
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+	}
+
+	h1 {
+		font-size: 36px;
+		margin: 0 0 1em;
+		color: #111827;
+	}
+
+	p {
+		color: #4b5563;
+		font-size: 19px;
+		line-height: 1.7;
+		margin: 0 0 1.2em;
+	}
+
+	.lead {
+		font-size: 26px;
+		line-height: 1.5;
+		color: #111827;
+		font-weight: 400;
+		padding-bottom: 1.2em;
+		margin-bottom: 1.5em;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.lead strong {
+		font-weight: 700;
+		color: #111827;
+	}
+
+	.reasons {
+		margin-bottom: 1.5em;
+	}
+
+	.reason {
+		display: flex;
+		gap: 20px;
+		padding: 20px 0;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	.reason:last-child {
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.num {
+		flex: none;
+		font-size: 19px;
+		font-weight: 700;
+		color: #111827;
+	}
+
+	.reasons p {
+		font-size: 19px;
+		line-height: 1.7;
+		margin: 0;
+	}
+
+	@media screen and (max-width: 480px) {
+		.reason {
+			gap: 12px;
+		}
+	}
+</style>
