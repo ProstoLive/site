@@ -1,20 +1,77 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const tags = [
+  'Видеоигры', 
+  'Искусство', 
+  'Прогулки', 
+  'Дискуссии на спорные темы', 
+  'Распределённые системы', 
+  'Образование', 
+  'AI в образовании',
+  'Программирование',
+  'CRDT',
+  'Мораль',
+  'Политическая философия'];
+
+// достаточно повторов, чтобы одна половина трека гарантированно
+// перекрывала ширину контейнера на любом разумном экране
+const REPEATS = 1;
+
+function buildHalf(offset: number) {
+	const rotated = [...tags.slice(offset), ...tags.slice(0, offset)];
+	return Array.from({ length: REPEATS }, () => rotated).flat();
+}
+
+// каждый ряд = [половина, та же половина] — чтобы translateX(-50%)
+// сходился без скачка, дублируемая часть должна быть побайтово идентична
+const rowSpeeds = [50, 67, 62]; // секунд на полный цикл, свои для каждого ряда
+const rows = rowSpeeds.map((speed, i) => {
+	const half = buildHalf(i);
+	return { tags: [...half, ...half], speed };
+});
 ---
 
 <Layout>
 	<main>
 		<h1>Обо мне</h1>
 
-		<p class="lead">
-			Привет! Меня зовут Артём, я студент, программист, активист, но прежде всего <strong>человек</strong>.
-		</p>
+		<div class="intro">
+			<img class="portrait" src="/avatar.png" alt="Артём" width="220" height="280" />
+
+			<p class="lead">
+				<span class="prompt">&gt;</span> Привет! Меня зовут Артём, я студент, программист,
+				активист, и член других социальных групп.
+				<br />
+				Но прежде всего я <strong>человек</strong>.<span class="cursor" aria-hidden="true"></span>
+			</p>
+		</div>
+
 		<p>
 			Я учусь в Саратовском государственном университете имени Н. Г. Чернышевского, активно
 			интересуюсь IT и стараюсь заинтересовывать в этой сфере других людей.
-			Я обожаю видеоигры, картины, прогулки и многочасовые дискуссии на самые спорные (и не очень)
-			темы.
 		</p>
+
+		<p>
+		  Вот примерный список того, что мне очень нравится:
+		</p>
+
+		<div class="carousel">
+			{
+				rows.map((row, i) => (
+					<div
+						class={`row ${i % 2 === 0 ? 'row-a' : 'row-b'}`}
+						style={`--duration: ${row.speed}s`}
+					>
+						<ul class="track">
+							{row.tags.map((tag) => (
+								<li>{tag}</li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+		</div>
 
 		<p>Это пространство было создано мной как универсальное решение следующих проблем:</p>
 		<div class="reasons">
@@ -56,10 +113,99 @@ import Layout from '../layouts/Layout.astro';
 		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
+	.intro {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 40px;
+		align-items: center;
+		padding-bottom: 1.2em;
+		margin-bottom: 1.5em;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.portrait {
+		width: 220px;
+		height: 280px;
+		object-fit: cover;
+		border: 1px solid #111827;
+		border-radius: 12px;
+	}
+
 	h1 {
 		font-size: 36px;
 		margin: 0 0 1em;
 		color: #111827;
+	}
+
+	.carousel {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		margin: 0 0 2em;
+		overflow: hidden;
+		mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+		-webkit-mask-image: linear-gradient(
+			to right,
+			transparent,
+			black 10%,
+			black 90%,
+			transparent
+		);
+	}
+
+	.row {
+		overflow: hidden;
+	}
+
+	.track {
+		display: flex;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		width: max-content;
+	}
+
+	.row-a .track {
+		animation: scroll-left var(--duration, 60s) linear infinite;
+	}
+
+	.row-b .track {
+		animation: scroll-right var(--duration, 60s) linear infinite;
+	}
+
+	.track li {
+		flex: none;
+		margin-right: 8px;
+		padding: 6px 14px;
+		border: 1px solid #e5e7eb;
+		border-radius: 999px;
+		font-size: 14px;
+		color: #4b5563;
+		white-space: nowrap;
+	}
+
+	@keyframes scroll-left {
+		from {
+			transform: translateX(0);
+		}
+		to {
+			transform: translateX(-50%);
+		}
+	}
+
+	@keyframes scroll-right {
+		from {
+			transform: translateX(-50%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.track {
+			animation: none;
+		}
 	}
 
 	p {
@@ -74,9 +220,39 @@ import Layout from '../layouts/Layout.astro';
 		line-height: 1.5;
 		color: #111827;
 		font-weight: 400;
-		padding-bottom: 1.2em;
-		margin-bottom: 1.5em;
-		border-bottom: 1px solid #e5e7eb;
+		margin: 0;
+	}
+
+	.prompt {
+		font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+		color: #9ca3af;
+	}
+
+	.cursor {
+		display: inline-block;
+		width: 0.5em;
+		height: 1em;
+		margin-left: 4px;
+		background: #111827;
+		vertical-align: text-bottom;
+		animation: blink 1s step-end infinite;
+	}
+
+	@keyframes blink {
+		0%,
+		50% {
+			opacity: 1;
+		}
+		50.01%,
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cursor {
+			animation: none;
+		}
 	}
 
 	.lead strong {
@@ -115,6 +291,17 @@ import Layout from '../layouts/Layout.astro';
 	@media screen and (max-width: 480px) {
 		.reason {
 			gap: 12px;
+		}
+	}
+
+	@media screen and (max-width: 640px) {
+		.intro {
+			grid-template-columns: 1fr;
+		}
+
+		.portrait {
+			width: 160px;
+			height: 200px;
 		}
 	}
 </style>
