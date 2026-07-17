@@ -102,6 +102,28 @@ const rows = rowSpeeds.map((speed, i) => {
 			Я также выступаю за Local-first, Open-source, а это пространство реализует принцип POSSE
 			(Publish on own site, syndicate elsewhere).
 		</p>
+
+		<h2>Давайте общаться!</h2>
+    <p>Это пространство создано в том числе для поиска единомышленников и просто новых знакомств, так что будьте вольны написать мне через любой канал связи. Кстати, вот они:</p>
+		<div class="contacts">
+			<a class="contact" href="mailto:artem@example.com">
+				<span class="contact-label">Email</span>
+				<span class="contact-value">artem@example.com</span>
+			</a>
+			<a class="contact" href="https://t.me/artem_placeholder" target="_blank" rel="noopener noreferrer">
+				<span class="contact-label">Telegram</span>
+				<span class="contact-value">@artem_placeholder</span>
+			</a>
+			<a
+				class="contact"
+				href="https://github.com/artem-placeholder"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<span class="contact-label">GitHub</span>
+				<span class="contact-value">github.com/artem-placeholder</span>
+			</a>
+		</div>
 	</main>
 </Layout>
 
@@ -135,6 +157,15 @@ const rows = rowSpeeds.map((speed, i) => {
 		font-size: 36px;
 		margin: 0 0 1em;
 		color: #111827;
+	}
+
+	h2 {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #b45309;
+		margin: 2.5em 0 0.6em;
 	}
 
 	.carousel {
@@ -302,6 +333,53 @@ const rows = rowSpeeds.map((speed, i) => {
 		.portrait {
 			width: 160px;
 			height: 200px;
+		}
+	}
+
+	.contacts {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.contact {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 16px 0;
+		border-top: 1px solid #e5e7eb;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.contact:last-child {
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.contact-label {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #9ca3af;
+	}
+
+	.contact-value {
+		font-size: 19px;
+		color: #111827;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.contact:hover .contact-value {
+		color: #b45309;
+	}
+
+	@media screen and (max-width: 480px) {
+		.contact {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
 		}
 	}
 </style>
