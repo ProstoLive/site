@@ -121,7 +121,6 @@ const events: { date: string; title: string; details?: string }[] = [
 		max-width: 960px;
 		margin: 8vh auto 0;
 		padding: 16px;
-		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
 	.present {
@@ -134,14 +133,14 @@ const events: { date: string; title: string; details?: string }[] = [
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: #b45309;
+		color: var(--accent);
 		margin: 0 0 0.8em;
 	}
 
 	.present-text {
 		font-size: 34px;
 		line-height: 1.4;
-		color: #111827;
+		color: var(--ink);
 		font-weight: 500;
 		max-width: 26ch;
 		margin: 0 auto;
@@ -157,13 +156,13 @@ const events: { date: string; title: string; details?: string }[] = [
 	.bridge-line {
 		width: 2px;
 		height: 2.5em;
-		background: #e5e7eb;
+		background: var(--border);
 	}
 
 	.lead {
 		font-size: 19px;
 		line-height: 1.7;
-		color: #4b5563;
+		color: var(--text);
 		margin: 0.8em 0;
 		max-width: 40ch;
 	}
@@ -182,7 +181,7 @@ const events: { date: string; title: string; details?: string }[] = [
 		bottom: 0;
 		left: 50%;
 		width: 2px;
-		background: #e5e7eb;
+		background: var(--border);
 		transform: translateX(-50%);
 	}
 
@@ -219,7 +218,7 @@ const events: { date: string; title: string; details?: string }[] = [
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		background: #faf7f2;
+		background: var(--bg);
 		border: 2px solid #d1d5db;
 		transition:
 			border-color 0.2s ease,
@@ -230,8 +229,8 @@ const events: { date: string; title: string; details?: string }[] = [
 	.entry:hover .dot,
 	.entry:focus-within .dot,
 	.entry:focus .dot {
-		border-color: #b45309;
-		background: #b45309;
+		border-color: var(--accent);
+		background: var(--accent);
 		transform: scale(1.15);
 	}
 
@@ -239,9 +238,9 @@ const events: { date: string; title: string; details?: string }[] = [
 		display: block;
 		font-size: 14px;
 		font-weight: 600;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		color: #9ca3af;
+		color: var(--muted);
 		margin-bottom: 0.5em;
 	}
 
@@ -249,20 +248,20 @@ const events: { date: string; title: string; details?: string }[] = [
 		font-size: 24px;
 		font-weight: 600;
 		margin: 0;
-		color: #9ca3af;
+		color: var(--muted);
 		transition: color 0.2s ease;
 	}
 
 	.entry:hover .title,
 	.entry:focus-within .title,
 	.entry:focus .title {
-		color: #b45309;
+		color: var(--accent);
 	}
 
 	.details {
 		font-size: 17px;
 		line-height: 1.6;
-		color: #4b5563;
+		color: var(--text);
 		margin: 0.7em 0 0;
 		max-height: 0;
 		opacity: 0;

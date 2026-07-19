@@ -38,7 +38,7 @@
 	.read-elsewhere {
 		margin-bottom: 2.5em;
 		padding-bottom: 1.5em;
-		border-bottom: 1px solid #e5e7eb;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.heading {
@@ -55,19 +55,19 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: #b45309;
+		color: var(--accent);
 	}
 
 	.posse-link {
 		font-size: 14px;
-		color: #9ca3af;
+		color: var(--muted);
 		text-decoration: underline;
 		text-underline-offset: 3px;
 		transition: color 0.2s ease;
 	}
 
 	.posse-link:hover {
-		color: #b45309;
+		color: var(--accent);
 	}
 
 	.resources {
@@ -81,10 +81,10 @@
 		align-items: center;
 		gap: 7px;
 		padding: 6px 14px;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border);
 		border-radius: 999px;
 		font-size: 14px;
-		color: #4b5563;
+		color: var(--text);
 		text-decoration: none;
 		transition:
 			color 0.2s ease,
@@ -97,7 +97,7 @@
 	}
 
 	.resource:hover {
-		color: #b45309;
-		border-color: #b45309;
+		color: var(--accent);
+		border-color: var(--accent);
 	}
 </style>

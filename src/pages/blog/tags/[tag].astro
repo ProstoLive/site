@@ -40,25 +40,24 @@ const { tag, posts } = Astro.props;
 		max-width: 860px;
 		margin: 8vh auto 0;
 		padding: 16px;
-		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
 	.back {
 		display: inline-block;
 		margin-bottom: 2em;
-		color: #4b5563;
+		color: var(--text);
 		font-size: 14px;
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
 
 	.back:hover {
-		color: #111827;
+		color: var(--ink);
 	}
 
 	h1 {
 		font-size: 36px;
 		margin: 0 0 1em;
-		color: #111827;
+		color: var(--ink);
 	}
 </style>

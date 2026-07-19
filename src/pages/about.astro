@@ -132,7 +132,6 @@ const rows = rowSpeeds.map((speed, i) => {
 		max-width: 860px;
 		margin: 8vh auto 0;
 		padding: 16px;
-		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
 	.intro {
@@ -142,29 +141,29 @@ const rows = rowSpeeds.map((speed, i) => {
 		align-items: center;
 		padding-bottom: 1.2em;
 		margin-bottom: 1.5em;
-		border-bottom: 1px solid #e5e7eb;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.portrait {
 		width: 220px;
 		height: 280px;
 		object-fit: cover;
-		border: 1px solid #111827;
+		border: 1px solid var(--ink);
 		border-radius: 12px;
 	}
 
 	h1 {
 		font-size: 36px;
 		margin: 0 0 1em;
-		color: #111827;
+		color: var(--ink);
 	}
 
 	h2 {
 		font-size: 14px;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		color: #b45309;
+		letter-spacing: 0.05em;
+		color: var(--accent);
 		margin: 2.5em 0 0.6em;
 	}
 
@@ -208,10 +207,10 @@ const rows = rowSpeeds.map((speed, i) => {
 		flex: none;
 		margin-right: 8px;
 		padding: 6px 14px;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border);
 		border-radius: 999px;
 		font-size: 14px;
-		color: #4b5563;
+		color: var(--text);
 		white-space: nowrap;
 	}
 
@@ -240,7 +239,7 @@ const rows = rowSpeeds.map((speed, i) => {
 	}
 
 	p {
-		color: #4b5563;
+		color: var(--text);
 		font-size: 19px;
 		line-height: 1.7;
 		margin: 0 0 1.2em;
@@ -249,14 +248,14 @@ const rows = rowSpeeds.map((speed, i) => {
 	.lead {
 		font-size: 26px;
 		line-height: 1.5;
-		color: #111827;
+		color: var(--ink);
 		font-weight: 400;
 		margin: 0;
 	}
 
 	.prompt {
-		font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
-		color: #9ca3af;
+		font-family: var(--font-mono);
+		color: var(--muted);
 	}
 
 	.cursor {
@@ -264,7 +263,7 @@ const rows = rowSpeeds.map((speed, i) => {
 		width: 0.5em;
 		height: 1em;
 		margin-left: 4px;
-		background: #111827;
+		background: var(--ink);
 		vertical-align: text-bottom;
 		animation: blink 1s step-end infinite;
 	}
@@ -288,7 +287,7 @@ const rows = rowSpeeds.map((speed, i) => {
 
 	.lead strong {
 		font-weight: 700;
-		color: #111827;
+		color: var(--ink);
 	}
 
 	.reasons {
@@ -299,18 +298,18 @@ const rows = rowSpeeds.map((speed, i) => {
 		display: flex;
 		gap: 20px;
 		padding: 20px 0;
-		border-top: 1px solid #e5e7eb;
+		border-top: 1px solid var(--border);
 	}
 
 	.reason:last-child {
-		border-bottom: 1px solid #e5e7eb;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.num {
 		flex: none;
 		font-size: 19px;
 		font-weight: 700;
-		color: #111827;
+		color: var(--ink);
 	}
 
 	.reasons p {
@@ -347,32 +346,32 @@ const rows = rowSpeeds.map((speed, i) => {
 		justify-content: space-between;
 		gap: 16px;
 		padding: 16px 0;
-		border-top: 1px solid #e5e7eb;
+		border-top: 1px solid var(--border);
 		text-decoration: none;
 		color: inherit;
 	}
 
 	.contact:last-child {
-		border-bottom: 1px solid #e5e7eb;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.contact-label {
 		font-size: 14px;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: #9ca3af;
+		letter-spacing: 0.05em;
+		color: var(--muted);
 	}
 
 	.contact-value {
 		font-size: 19px;
-		color: #111827;
+		color: var(--ink);
 		text-decoration: underline;
 		text-underline-offset: 3px;
 	}
 
 	.contact:hover .contact-value {
-		color: #b45309;
+		color: var(--accent);
 	}
 
 	@media screen and (max-width: 480px) {

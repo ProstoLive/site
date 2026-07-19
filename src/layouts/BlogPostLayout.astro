@@ -1,5 +1,7 @@
 ---
+import type { ImageMetadata } from 'astro';
 import Layout from './Layout.astro';
+import 'katex/dist/katex.min.css';
 
 interface Props {
 	title: string;
@@ -7,16 +9,24 @@ interface Props {
 	pubDate: Date;
 	updatedDate?: Date;
 	tags: string[];
+	cover?: ImageMetadata;
 }
 
-const { title, description, pubDate, updatedDate, tags } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover } = Astro.props;
 
 function formatDate(date: Date) {
 	return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 ---
 
-<Layout title={`${title} — Блог`} description={description}>
+<Layout
+	title={`${title} — Блог`}
+	description={description}
+	image={cover?.src}
+	type="article"
+	publishedTime={pubDate}
+	modifiedTime={updatedDate}
+>
 	<main>
 		<a class="back" href="/blog">← Ко всем постам</a>
 
@@ -50,20 +60,19 @@ function formatDate(date: Date) {
 		max-width: 720px;
 		margin: 8vh auto 0;
 		padding: 16px;
-		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 	}
 
 	.back {
 		display: inline-block;
 		margin-bottom: 2.5em;
-		color: #4b5563;
+		color: var(--text);
 		font-size: 14px;
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
 
 	.back:hover {
-		color: #111827;
+		color: var(--ink);
 	}
 
 	.post-header {
@@ -76,14 +85,14 @@ function formatDate(date: Date) {
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: #b45309;
+		color: var(--accent);
 		margin: 0 0 0.6em;
 	}
 
 	h1 {
 		font-size: 36px;
 		line-height: 1.25;
-		color: #111827;
+		color: var(--ink);
 		margin: 0 0 0.8em;
 	}
 
@@ -95,10 +104,10 @@ function formatDate(date: Date) {
 
 	.tag {
 		padding: 6px 14px;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border);
 		border-radius: 999px;
 		font-size: 14px;
-		color: #4b5563;
+		color: var(--text);
 		text-decoration: none;
 		transition:
 			color 0.2s ease,
@@ -106,12 +115,12 @@ function formatDate(date: Date) {
 	}
 
 	.tag:hover {
-		color: #b45309;
-		border-color: #b45309;
+		color: var(--accent);
+		border-color: var(--accent);
 	}
 
 	.content {
-		color: #4b5563;
+		color: var(--text);
 		font-size: 19px;
 		line-height: 1.7;
 	}
@@ -119,14 +128,14 @@ function formatDate(date: Date) {
 	.content :global(h2) {
 		font-size: 26px;
 		font-weight: 600;
-		color: #111827;
+		color: var(--ink);
 		margin: 1.8em 0 0.6em;
 	}
 
 	.content :global(h3) {
 		font-size: 21px;
 		font-weight: 600;
-		color: #111827;
+		color: var(--ink);
 		margin: 1.6em 0 0.5em;
 	}
 
@@ -135,13 +144,13 @@ function formatDate(date: Date) {
 	}
 
 	.content :global(a) {
-		color: #b45309;
+		color: var(--accent);
 		text-decoration: underline;
 		text-underline-offset: 3px;
 	}
 
 	.content :global(a:hover) {
-		color: #92400e;
+		color: var(--accent-deep);
 	}
 
 	.content :global(ul),
@@ -157,13 +166,13 @@ function formatDate(date: Date) {
 	.content :global(blockquote) {
 		margin: 1.5em 0;
 		padding-left: 1em;
-		border-left: 2px solid #e5e7eb;
-		color: #4b5563;
+		border-left: 2px solid var(--border);
+		color: var(--text);
 		font-style: italic;
 	}
 
 	.content :global(code) {
-		font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+		font-family: var(--font-mono);
 		background: rgba(0, 0, 0, 0.05);
 		padding: 2px 6px;
 		border-radius: 4px;
@@ -191,12 +200,12 @@ function formatDate(date: Date) {
 
 	.content :global(hr) {
 		border: none;
-		border-top: 1px solid #e5e7eb;
+		border-top: 1px solid var(--border);
 		margin: 2.5em 0;
 	}
 
 	.content :global(strong) {
-		color: #111827;
+		color: var(--ink);
 		font-weight: 700;
 	}
 
