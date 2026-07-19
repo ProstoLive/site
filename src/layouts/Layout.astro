@@ -1,5 +1,12 @@
 ---
 import Navbar from '../components/Navbar.astro';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = 'Артём', description = 'Личный сайт Артёма' } = Astro.props;
 ---
 
 <!doctype html>
@@ -10,7 +17,18 @@ import Navbar from '../components/Navbar.astro';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<meta name="description" content={description} />
+		{
+			Astro.site && (
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title={title}
+					href={new URL('rss.xml', Astro.site)}
+				/>
+			)
+		}
+		<title>{title}</title>
 	</head>
 	<body>
 		<Navbar />

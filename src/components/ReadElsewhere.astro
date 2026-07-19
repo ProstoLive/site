@@ -1,0 +1,103 @@
+---
+---
+
+<div class="read-elsewhere">
+	<div class="heading">
+		<span class="label">Читайте там, где удобно</span>
+		<a class="posse-link" href="/blog/posse/">что такое POSSE?</a>
+	</div>
+	<div class="resources">
+		<a class="resource" href="/rss.xml">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4 11a9 9 0 0 1 9 9" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4 4a16 16 0 0 1 16 16" />
+				<circle cx="5" cy="19" r="1" />
+			</svg>
+			RSS
+		</a>
+		<a
+			class="resource"
+			href="https://t.me/dot_redkiy"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<line stroke-linecap="round" stroke-linejoin="round" x1="22" y1="2" x2="11" y2="13" />
+				<polygon
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					points="22 2 15 22 11 13 2 9 22 2"
+				/>
+			</svg>
+			Telegram
+		</a>
+	</div>
+</div>
+
+<style>
+	.read-elsewhere {
+		margin-bottom: 2.5em;
+		padding-bottom: 1.5em;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.heading {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 8px 16px;
+		margin-bottom: 0.9em;
+	}
+
+	.label {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #b45309;
+	}
+
+	.posse-link {
+		font-size: 14px;
+		color: #9ca3af;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		transition: color 0.2s ease;
+	}
+
+	.posse-link:hover {
+		color: #b45309;
+	}
+
+	.resources {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.resource {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		padding: 6px 14px;
+		border: 1px solid #e5e7eb;
+		border-radius: 999px;
+		font-size: 14px;
+		color: #4b5563;
+		text-decoration: none;
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.resource svg {
+		width: 15px;
+		height: 15px;
+	}
+
+	.resource:hover {
+		color: #b45309;
+		border-color: #b45309;
+	}
+</style>

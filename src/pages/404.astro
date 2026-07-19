@@ -1,0 +1,448 @@
+---
+---
+
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Страница не найдена</title>
+	</head>
+	<body>
+		<main class="stage" id="stage">
+			<!-- общие определения: тело лампы и её свет, переиспользуются обеими сценами -->
+			<svg class="defs" aria-hidden="true">
+				<defs>
+					<linearGradient id="shadeGrad" x1="0" y1="0" x2="1" y2="1">
+						<stop offset="0%" stop-color="#585863" />
+						<stop offset="45%" stop-color="#2b2b33" />
+						<stop offset="100%" stop-color="#141417" />
+					</linearGradient>
+					<linearGradient id="capGrad" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stop-color="#45454f" />
+						<stop offset="100%" stop-color="#1e1e24" />
+					</linearGradient>
+					<linearGradient id="coneGrad" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stop-color="rgba(255, 224, 158, 0.34)" />
+						<stop offset="45%" stop-color="rgba(255, 214, 130, 0.13)" />
+						<stop offset="80%" stop-color="rgba(255, 214, 130, 0)" />
+					</linearGradient>
+					<radialGradient id="openGlow">
+						<stop offset="0%" stop-color="#ffedc4" />
+						<stop offset="55%" stop-color="rgba(255, 213, 122, 0.55)" />
+						<stop offset="100%" stop-color="rgba(255, 213, 122, 0)" />
+					</radialGradient>
+					<filter id="coneBlur" x="-50%" y="-20%" width="200%" height="140%">
+						<feGaussianBlur stdDeviation="10" />
+					</filter>
+					<filter id="glowBlur" x="-80%" y="-300%" width="260%" height="700%">
+						<feGaussianBlur stdDeviation="4" />
+					</filter>
+
+					<!-- свет: конус + свечение у кромки, рисуется ПОД плафоном -->
+					<g id="lamp-light">
+						<polygon
+							points="-52,70 52,70 185,560 -185,560"
+							fill="url(#coneGrad)"
+							filter="url(#coneBlur)"
+						/>
+						<ellipse cx="0" cy="71" rx="56" ry="8" fill="url(#openGlow)" filter="url(#glowBlur)" />
+					</g>
+
+					<!-- корпус: цоколь-крепление и плафон, закрывает верх свечения -->
+					<g id="lamp-body">
+						<rect x="-8" y="-2" width="16" height="15" rx="2" fill="url(#capGrad)" />
+						<path d="M -16 10 L 16 10 L 64 70 L -64 70 Z" fill="url(#shadeGrad)" />
+					</g>
+
+					<!-- подсвеченная кромка плафона, поверх корпуса -->
+					<line
+						id="lamp-rim"
+						x1="-62"
+						y1="70"
+						x2="62"
+						y2="70"
+						stroke="rgba(255, 218, 145, 0.8)"
+						stroke-width="2.5"
+						stroke-linecap="round"
+					/>
+				</defs>
+			</svg>
+
+			<span class="ceiling-mount" aria-hidden="true"></span>
+
+			<!-- мобильная сцена: лёгкое авто-покачивание -->
+			<div class="mobile-rig" aria-hidden="true">
+				<svg viewBox="-200 0 400 700" width="400" height="700">
+					<line x1="0" y1="0" x2="0" y2="140" class="cord-line" />
+					<g transform="translate(0 140)">
+						<use href="#lamp-light" class="flicker" />
+						<use href="#lamp-body" />
+						<use href="#lamp-rim" class="flicker" />
+					</g>
+				</svg>
+			</div>
+
+			<!-- десктопная сцена: физика на JS, лампу можно таскать -->
+			<svg class="scene" id="scene" aria-hidden="true">
+				<path id="cordPath" class="cord-line" d="" />
+				<g id="lampG">
+					<use href="#lamp-light" class="flicker" />
+					<use href="#lamp-body" id="lampBody" />
+					<use href="#lamp-rim" class="flicker" />
+				</g>
+			</svg>
+
+			<p class="message">
+				Упс, кажется, тут ничего нет!
+				<br />
+				По крайней мере пока.
+			</p>
+
+			<a class="home-btn" href="/">На главную</a>
+		</main>
+
+		<script>
+			const stage = document.getElementById('stage') as HTMLElement;
+			const scene = document.getElementById('scene') as unknown as SVGSVGElement;
+			const cordPath = document.getElementById('cordPath') as unknown as SVGPathElement;
+			const lampG = document.getElementById('lampG') as unknown as SVGGElement;
+			const lampBody = document.getElementById('lampBody') as unknown as SVGUseElement;
+
+			const REST = 190; // длина провода в px в свободном состоянии
+			const GRAVITY = 0.45;
+			const DAMPING = 0.9985; // близко к 1 — маятник качается долго
+			const SPRING = 0.35; // жёсткость провода: растяжение мало, но отдача заметна
+			const CORD_DAMP = 0.3; // вязкое трение вдоль провода: пара отскоков — и затухание
+			const MAX_STRETCH = 60; // страховка от разлёта при экстремальных скоростях
+
+			const anchorY = 4;
+			let anchorX = 0;
+
+			// позиция верхушки лампы относительно точки крепления (верлет-интеграция)
+			let x = 0;
+			let y = REST;
+			let px = 0;
+			let py = REST;
+
+			let targetX = 0;
+			let targetY = REST;
+			let dragging = false;
+			let angle = 0; // отображаемый наклон лампы, градусы
+
+			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			function measure() {
+				const rect = stage.getBoundingClientRect();
+				scene.setAttribute('width', String(rect.width));
+				scene.setAttribute('height', String(rect.height));
+				anchorX = rect.width / 2;
+			}
+
+			function updateTarget(clientX: number, clientY: number) {
+				const rect = stage.getBoundingClientRect();
+				let tx = clientX - rect.left - anchorX;
+				let ty = clientY - rect.top - anchorY;
+				// за пределом длины провод лишь слегка поддаётся, с сопротивлением
+				const d = Math.hypot(tx, ty);
+				if (d > REST) {
+					const give = Math.min((d - REST) * 0.2, 20);
+					tx = (tx / d) * (REST + give);
+					ty = (ty / d) * (REST + give);
+				}
+				targetX = tx;
+				targetY = ty;
+			}
+
+			function step() {
+				if (dragging) {
+					px = x;
+					py = y;
+					x = targetX;
+					y = targetY;
+				} else if (reduceMotion) {
+					x = px = 0;
+					y = py = REST;
+				} else {
+					const vx = (x - px) * DAMPING;
+					const vy = (y - py) * DAMPING;
+					px = x;
+					py = y;
+					// провод упругий: за пределом длины тянет обратно по закону Гука.
+					// вязкое трение действует только на радиальную составляющую скорости —
+					// отскоки быстро гаснут, а маятниковое качание почти не теряет энергии
+					let ax = 0;
+					let ay = GRAVITY;
+					let d = Math.hypot(x, y);
+					if (d > REST) {
+						const nx = x / d;
+						const ny = y / d;
+						const stretch = d - REST;
+						const vr = vx * nx + vy * ny;
+						const f = stretch * SPRING + vr * CORD_DAMP;
+						ax -= nx * f;
+						ay -= ny * f;
+					}
+					x += vx + ax;
+					y += vy + ay;
+					d = Math.hypot(x, y);
+					if (d > REST + MAX_STRETCH) {
+						x = (x / d) * (REST + MAX_STRETCH);
+						y = (y / d) * (REST + MAX_STRETCH);
+					}
+					// у положения равновесия останавливаем полностью, чтобы не дрожала
+					if (
+						Math.abs(x) < 0.6 &&
+						Math.abs(d - REST) < 3 &&
+						Math.abs(x - px) < 0.03 &&
+						Math.abs(y - py) < 0.03
+					) {
+						x = px = 0;
+						y = py = REST + GRAVITY / SPRING;
+					}
+				}
+
+				const d = Math.hypot(x, y);
+				const taut = d > REST - 1;
+				// натянутый провод ведёт лампу за собой; провисший — лампа висит вертикально.
+				// знак минус: svg rotate() крутит по часовой, а положительный atan2(x, y) --
+				// отклонение вправо, при котором лампа должна наклониться против часовой
+				const target = taut ? -Math.atan2(x, y) * (180 / Math.PI) : 0;
+				angle += (target - angle) * (taut ? 0.5 : 0.12);
+			}
+
+			function render() {
+				const endX = anchorX + x;
+				const endY = anchorY + y;
+				const d = Math.hypot(x, y);
+				const slack = Math.max(0, REST - d);
+				// насколько провод провис: 0 — натянут (прямая), 1 — заметно согнут
+				const bend = Math.min(slack / 40, 1);
+
+				const a = (angle * Math.PI) / 180;
+				const l1 = Math.min(d * 0.4, 60) + slack * 0.6;
+				const l2 = Math.min(d * 0.3, 40) + slack * 0.3;
+
+				// контрольные точки: при натяжении лежат на прямой, при провисе дают дугу
+				const c1x = anchorX * bend + (anchorX + x / 3) * (1 - bend);
+				const c1y = (anchorY + l1) * bend + (anchorY + y / 3) * (1 - bend);
+				const c2x = (endX + Math.sin(a) * l2) * bend + (anchorX + (x * 2) / 3) * (1 - bend);
+				const c2y = (endY - Math.cos(a) * l2) * bend + (anchorY + (y * 2) / 3) * (1 - bend);
+
+				cordPath.setAttribute(
+					'd',
+					`M ${anchorX} ${anchorY} C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${endX.toFixed(1)} ${endY.toFixed(1)}`,
+				);
+				// растянутый провод становится тоньше
+				cordPath.style.strokeWidth = ((2.5 * Math.min(d, REST)) / d).toFixed(2);
+				lampG.setAttribute(
+					'transform',
+					`translate(${endX.toFixed(1)} ${endY.toFixed(1)}) rotate(${angle.toFixed(2)})`,
+				);
+			}
+
+			function loop() {
+				step();
+				render();
+				requestAnimationFrame(loop);
+			}
+
+			lampBody.addEventListener('pointerdown', (e: PointerEvent) => {
+				dragging = true;
+				lampBody.setPointerCapture(e.pointerId);
+				updateTarget(e.clientX, e.clientY);
+			});
+			window.addEventListener('pointermove', (e: PointerEvent) => {
+				if (dragging) updateTarget(e.clientX, e.clientY);
+			});
+			window.addEventListener('pointerup', () => {
+				dragging = false;
+			});
+
+			measure();
+			window.addEventListener('resize', measure);
+			render();
+			requestAnimationFrame(loop);
+		</script>
+
+		<style>
+			html,
+			body {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+			}
+
+			.stage {
+				position: relative;
+				min-height: 100vh;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				background: #0a0a0d;
+				font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+			}
+
+			.defs {
+				position: absolute;
+				width: 0;
+				height: 0;
+			}
+
+			.ceiling-mount {
+				position: absolute;
+				top: 0;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 30px;
+				height: 8px;
+				background: #1e1e24;
+				border-radius: 0 0 3px 3px;
+				z-index: 2;
+			}
+
+			.cord-line {
+				fill: none;
+				stroke: #3a3a44;
+				stroke-width: 2.5;
+				stroke-linecap: round;
+			}
+
+			.flicker {
+				animation: flicker 6s linear infinite;
+			}
+
+			@keyframes flicker {
+				0%,
+				19%,
+				21%,
+				23%,
+				54%,
+				56%,
+				100% {
+					opacity: 1;
+				}
+				20%,
+				22%,
+				55% {
+					opacity: 0.55;
+				}
+			}
+
+			/* --- мобильная сцена --- */
+
+			.mobile-rig {
+				position: absolute;
+				top: 0;
+				left: 50%;
+				width: 400px;
+				margin-left: -200px;
+				transform-origin: 50% 0;
+				animation: sway 4.5s ease-in-out infinite;
+				pointer-events: none;
+			}
+
+			@keyframes sway {
+				0%,
+				100% {
+					transform: rotate(-4deg);
+				}
+				50% {
+					transform: rotate(4deg);
+				}
+			}
+
+			/* --- десктопная сцена --- */
+
+			.scene {
+				display: none;
+				position: absolute;
+				top: 0;
+				left: 0;
+				pointer-events: none;
+				touch-action: none;
+			}
+
+			#lampBody {
+				pointer-events: auto;
+				cursor: grab;
+			}
+
+			#lampBody:active {
+				cursor: grabbing;
+			}
+
+			@media (hover: hover) and (pointer: fine) {
+				.mobile-rig {
+					display: none;
+				}
+
+				.scene {
+					display: block;
+				}
+			}
+
+			/* --- текст и кнопка --- */
+
+			.message {
+				position: relative;
+				z-index: 1;
+				margin: 340px 0 0;
+				text-align: center;
+				color: #efe6d6;
+				text-shadow: 0 0 26px rgba(255, 200, 120, 0.4);
+				font-size: 22px;
+				line-height: 1.6;
+				max-width: 34ch;
+				padding: 0 16px;
+			}
+
+			.home-btn {
+				position: relative;
+				z-index: 1;
+				margin-top: 36px;
+				padding: 12px 28px;
+				border: 1px solid rgba(244, 197, 122, 0.4);
+				border-radius: 999px;
+				color: #f2d9ad;
+				background: rgba(255, 255, 255, 0.04);
+				font-size: 15px;
+				letter-spacing: 0.02em;
+				text-decoration: none;
+				transition:
+					background 0.25s ease,
+					border-color 0.25s ease,
+					color 0.25s ease,
+					box-shadow 0.25s ease;
+			}
+
+			.home-btn:hover {
+				background: rgba(244, 197, 122, 0.12);
+				border-color: rgba(244, 197, 122, 0.75);
+				color: #ffe9c2;
+				box-shadow: 0 0 24px rgba(255, 200, 120, 0.15);
+			}
+
+			@media screen and (max-width: 640px) {
+				.message {
+					margin-top: 280px;
+					font-size: 19px;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.mobile-rig {
+					animation: none;
+				}
+
+				.flicker {
+					animation: none;
+				}
+			}
+		</style>
+	</body>
+</html>

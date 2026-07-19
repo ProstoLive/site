@@ -1,0 +1,257 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostList from '../../components/PostList.astro';
+import ReadElsewhere from '../../components/ReadElsewhere.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const allTags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) =>
+	a.localeCompare(b, 'ru'),
+);
+---
+
+<Layout
+	title="Блог"
+  description="Всё, что происходит в моей жизни. Ну, почти..."
+>
+	<main>
+		<ReadElsewhere />
+
+		<h1>Блог</h1>
+    <p class="intro">Всё, чем я хочу делиться с миром. Это и длинные статьи, и короткие заметки.</p>
+
+		{
+			allTags.length > 1 && (
+				<fieldset class="tag-filter" id="tagFilter">
+					<legend>Фильтр по тегам</legend>
+					<div class="tag-options">
+						{allTags.map((tag, i) => (
+							<span class="tag-toggle">
+								<input type="checkbox" id={`tag-${i}`} value={tag} />
+								<label for={`tag-${i}`}>{tag}</label>
+							</span>
+						))}
+					</div>
+					<div class="mode-options">
+						<span class="mode-toggle">
+							<input type="radio" name="filter-mode" id="mode-or" value="or" checked />
+							<label for="mode-or">Любой из тегов (∨)</label>
+						</span>
+						<span class="mode-toggle">
+							<input type="radio" name="filter-mode" id="mode-and" value="and" />
+							<label for="mode-and">Все теги (∧)</label>
+						</span>
+						<span class="mode-toggle">
+							<input type="radio" name="filter-mode" id="mode-xor" value="xor" />
+							<label for="mode-xor">Исключающее ИЛИ (⊕)</label>
+						</span>
+						<span class="mode-toggle">
+							<input type="radio" name="filter-mode" id="mode-impl" value="implication" />
+							<label for="mode-impl">Импликация (→)</label>
+						</span>
+						<span class="mode-toggle">
+							<input type="radio" name="filter-mode" id="mode-not" value="negation" />
+							<label for="mode-not">Отрицание (↓)</label>
+						</span>
+					</div>
+				</fieldset>
+			)
+		}
+
+		<p class="empty no-matches" hidden>
+			Пусто!
+		</p>
+
+		<PostList posts={posts} />
+	</main>
+</Layout>
+
+<script>
+	const fieldset = document.getElementById('tagFilter');
+	const posts = document.querySelectorAll<HTMLElement>('.posts .post');
+	const emptyMsg = document.querySelector<HTMLElement>('.no-matches');
+
+	function currentMode(): string {
+		const checked = fieldset?.querySelector<HTMLInputElement>('input[name="filter-mode"]:checked');
+		return checked ? checked.value : 'or';
+	}
+
+	function selectedTags(): string[] {
+		const checked = fieldset?.querySelectorAll<HTMLInputElement>('.tag-toggle input:checked');
+		return checked ? Array.from(checked).map((el) => el.value) : [];
+	}
+
+	// selected перечислены в порядке появления (порядок allTags),
+	function matches(tags: string[], selected: string[], mode: string): boolean {
+		if (selected.length === 0) return true;
+		switch (mode) {
+			case 'and':
+				return selected.every((t) => tags.includes(t));
+			case 'xor': {
+				// n-арный XOR = чётность: true, когда совпадений нечётное число
+				const matchCount = tags.filter((t) => selected.includes(t)).length;
+				return matchCount % 2 === 1;
+			}
+			case 'implication':
+				// цепочка импликаций: если тег есть, следующий по порядку тоже обязан быть
+				for (let i = 0; i < selected.length - 1; i++) {
+					if (tags.includes(selected[i]) && !tags.includes(selected[i + 1])) return false;
+				}
+				return true;
+			case 'negation':
+				return !selected.some((t) => tags.includes(t));
+			default:
+				return selected.some((t) => tags.includes(t));
+		}
+	}
+
+	function applyFilter() {
+		const selected = selectedTags();
+		const mode = currentMode();
+		let anyVisible = false;
+
+		posts.forEach((post) => {
+			const tags: string[] = JSON.parse(post.dataset.tags || '[]');
+			const visible = matches(tags, selected, mode);
+			post.hidden = !visible;
+			if (visible) anyVisible = true;
+		});
+
+		if (emptyMsg) emptyMsg.hidden = anyVisible || posts.length === 0;
+	}
+
+	fieldset?.addEventListener('change', applyFilter);
+</script>
+
+<style>
+	main {
+		max-width: 860px;
+		margin: 8vh auto 0;
+		padding: 16px;
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+	}
+
+	h1 {
+		font-size: 36px;
+		margin: 0 0 0.5em;
+		color: #111827;
+	}
+
+	.intro {
+		color: #4b5563;
+		font-size: 19px;
+		line-height: 1.7;
+		margin: 0 0 2.5em;
+	}
+
+	.tag-filter {
+		border: 1px solid #e5e7eb;
+		border-radius: 16px;
+		margin: 0 0 2.5em;
+		padding: 20px 24px 22px;
+		background: rgba(180, 83, 9, 0.035);
+	}
+
+	.tag-filter legend {
+		display: block;
+		padding: 0;
+		margin: 0 0 0.9em;
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #b45309;
+	}
+
+	.tag-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 12px;
+	}
+
+	.tag-toggle input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+	}
+
+	.tag-toggle label {
+		display: inline-block;
+		padding: 6px 14px;
+		border: 1px solid #e5e7eb;
+		border-radius: 999px;
+		font-size: 14px;
+		color: #4b5563;
+		cursor: pointer;
+		transition:
+			color 0.2s ease,
+			background 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.tag-toggle label:hover {
+		border-color: #b45309;
+	}
+
+	.tag-toggle input:checked + label {
+		background: #b45309;
+		border-color: #b45309;
+		color: #fff9f0;
+	}
+
+	.tag-toggle input:focus-visible + label {
+		outline: 2px solid #b45309;
+		outline-offset: 2px;
+	}
+
+	.mode-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 16px;
+		padding-top: 14px;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	.mode-toggle input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+	}
+
+	.mode-toggle label {
+		font-size: 14px;
+		color: #9ca3af;
+		cursor: pointer;
+		transition: color 0.2s ease;
+	}
+
+	.mode-toggle label:hover {
+		color: #4b5563;
+	}
+
+	.mode-toggle input:checked + label {
+		color: #111827;
+		font-weight: 600;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.mode-toggle input:focus-visible + label {
+		outline: 2px solid #b45309;
+		outline-offset: 2px;
+	}
+
+	.empty {
+		color: #4b5563;
+		font-size: 17px;
+		margin: 0 0 1.5em;
+	}
+</style>

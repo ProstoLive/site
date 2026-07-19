@@ -1,0 +1,64 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import PostList from '../../../components/PostList.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+	return tags.map((tag) => ({
+		params: { tag },
+		props: {
+			tag,
+			posts: posts
+				.filter((post) => post.data.tags.includes(tag))
+				.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+		},
+	}));
+}
+
+interface Props {
+	tag: string;
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<Layout title={`#${tag} — Блог`} description={`Посты с тегом «${tag}»`}>
+	<main>
+		<a class="back" href="/blog">← Ко всем постам</a>
+		<h1>#{tag}</h1>
+
+		<PostList posts={posts} />
+	</main>
+</Layout>
+
+<style>
+	main {
+		max-width: 860px;
+		margin: 8vh auto 0;
+		padding: 16px;
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+	}
+
+	.back {
+		display: inline-block;
+		margin-bottom: 2em;
+		color: #4b5563;
+		font-size: 14px;
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.back:hover {
+		color: #111827;
+	}
+
+	h1 {
+		font-size: 36px;
+		margin: 0 0 1em;
+		color: #111827;
+	}
+</style>
