@@ -103,6 +103,10 @@
 			</p>
 
 			<a class="home-btn" href="/">На главную</a>
+
+			<a class="secret-btn" id="secretBtn" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+				А это что?
+			</a>
 		</main>
 
 		<script>
@@ -111,6 +115,7 @@
 			const cordPath = document.getElementById('cordPath') as unknown as SVGPathElement;
 			const lampG = document.getElementById('lampG') as unknown as SVGGElement;
 			const lampBody = document.getElementById('lampBody') as unknown as SVGUseElement;
+			const secretBtn = document.getElementById('secretBtn') as HTMLAnchorElement;
 
 			const REST = 190; // длина провода в px в свободном состоянии
 			const GRAVITY = 0.45;
@@ -121,6 +126,38 @@
 
 			const anchorY = 4;
 			let anchorX = 0;
+
+			// пасхалка: кнопка стоит на фиксированном месте (координаты должны совпадать
+			// с .secret-btn в CSS — left: calc(50% + SECRET_BTN_X), top: SECRET_BTN_TOP).
+			// она "под лучом" только когда угол лампы близок к углу, под которым луч
+			// смотрит именно в эту точку — не любое отклонение дальше какого-то порога
+			const SECRET_BTN_X = 320; // px правее anchorX
+			const SECRET_BTN_TOP = 175; // px от верха .stage
+			const SECRET_ANGLE_TOLERANCE = 10; // ± градусов вокруг цели — ширина "пятна света"
+			const SECRET_GRACE_MS = 150; // короткая отсрочка перед выключением
+			const secretTargetAngle =
+				-Math.atan2(SECRET_BTN_X, SECRET_BTN_TOP - anchorY) * (180 / Math.PI);
+			let secretRevealed = false;
+			let secretHideTimer: ReturnType<typeof setTimeout> | null = null;
+
+			function setSecretLit(lit: boolean) {
+				if (lit) {
+					if (secretHideTimer !== null) {
+						clearTimeout(secretHideTimer);
+						secretHideTimer = null;
+					}
+					if (!secretRevealed) {
+						secretRevealed = true;
+						secretBtn.classList.add('visible');
+					}
+				} else if (secretRevealed && secretHideTimer === null) {
+					secretHideTimer = setTimeout(() => {
+						secretRevealed = false;
+						secretHideTimer = null;
+						secretBtn.classList.remove('visible');
+					}, SECRET_GRACE_MS);
+				}
+			}
 
 			// позиция верхушки лампы относительно точки крепления (верлет-интеграция)
 			let x = 0;
@@ -212,6 +249,8 @@
 				// отклонение вправо, при котором лампа должна наклониться против часовой
 				const target = taut ? -Math.atan2(x, y) * (180 / Math.PI) : 0;
 				angle += (target - angle) * (taut ? 0.5 : 0.12);
+
+				setSecretLit(Math.abs(angle - secretTargetAngle) <= SECRET_ANGLE_TOLERANCE);
 			}
 
 			function render() {
@@ -427,10 +466,57 @@
 				box-shadow: 0 0 24px rgba(255, 200, 120, 0.15);
 			}
 
+			/* пасхалка: фиксированная точка рядом с лампой, видна только пока
+			   луч (при наклоне ~58° и более) направлен на неё */
+			.secret-btn {
+				position: absolute;
+				top: 175px;
+				left: calc(50% + 320px);
+				z-index: 1;
+				padding: 8px 18px;
+				border: 1px solid rgba(244, 197, 122, 0.35);
+				border-radius: 999px;
+				color: #f2d9ad;
+				background: rgba(255, 255, 255, 0.03);
+				font-size: 13px;
+				letter-spacing: 0.02em;
+				text-decoration: none;
+				white-space: nowrap;
+				opacity: 0;
+				visibility: hidden;
+				pointer-events: none;
+				transform: translate(-50%, -50%);
+				transition:
+					opacity 0.15s ease,
+					visibility 0s linear 0.15s;
+			}
+
+			.secret-btn.visible {
+				opacity: 1;
+				visibility: visible;
+				pointer-events: auto;
+				transition: opacity 0.15s ease;
+			}
+
+			.secret-btn:hover {
+				background: rgba(244, 197, 122, 0.12);
+				border-color: rgba(244, 197, 122, 0.75);
+				color: #ffe9c2;
+				box-shadow: 0 0 24px rgba(255, 200, 120, 0.15);
+			}
+
 			@media screen and (max-width: 640px) {
 				.message {
 					margin-top: 280px;
 					font-size: 19px;
+				}
+			}
+
+			/* лампу можно таскать только при мыши и достаточной ширине (см. .scene) —
+			   на узких экранах кнопке просто негде появиться, не путать пользователя */
+			@media screen and (max-width: 900px) {
+				.secret-btn {
+					display: none;
 				}
 			}
 
