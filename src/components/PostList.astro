@@ -33,7 +33,10 @@ function formatDate(date: Date) {
 							</a>
 						)}
 						<div class="post-body">
-							<span class="post-date">{formatDate(post.data.pubDate)}</span>
+							<span class="post-date">
+								{formatDate(post.data.pubDate)}
+								{post.data.draft && import.meta.env.DEV && <span class="draft-badge">Черновик</span>}
+							</span>
 							<h2 class="post-title">
 								<a href={`/blog/${post.id}/`}>{post.data.title}</a>
 							</h2>
@@ -105,13 +108,25 @@ function formatDate(date: Date) {
 	}
 
 	.post-date {
-		display: block;
+		display: flex;
+		align-items: center;
+		gap: 10px;
 		font-size: 14px;
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: var(--accent);
 		margin-bottom: 0.5em;
+	}
+
+	.draft-badge {
+		padding: 2px 8px;
+		border: 1px solid currentColor;
+		border-radius: 999px;
+		font-size: 11px;
+		color: #b91c1c;
+		border-color: #b91c1c;
+		background: rgba(185, 28, 28, 0.08);
 	}
 
 	.post-title {

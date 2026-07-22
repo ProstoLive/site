@@ -4,9 +4,9 @@ import PostList from '../../components/PostList.astro';
 import ReadElsewhere from '../../components/ReadElsewhere.astro';
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = (
+	await getCollection('blog', ({ data }) => (import.meta.env.PROD ? !data.draft : true))
+).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const allTags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) =>
 	a.localeCompare(b, 'ru'),
