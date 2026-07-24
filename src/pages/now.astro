@@ -215,10 +215,17 @@ const events: { date: string; title: string; details?: string }[] = [
 		padding-bottom: 0;
 	}
 
+	.entry:hover,
+	.entry:focus-within,
+	.entry:focus {
+		z-index: 1;
+	}
+
 	.content {
 		grid-column: 1;
 		text-align: right;
 		padding-right: 8px;
+		position: relative;
 	}
 
 	.entry-right .content {
@@ -276,17 +283,24 @@ const events: { date: string; title: string; details?: string }[] = [
 	}
 
 	.details {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		margin: 0.7em 0 0;
+		padding: 14px 16px;
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		background: var(--bg);
 		font-size: 17px;
 		line-height: 1.6;
 		color: var(--text);
-		margin: 0.7em 0 0;
-		max-height: 0;
 		opacity: 0;
-		overflow: hidden;
+		visibility: hidden;
+		pointer-events: none;
 		transition:
-			max-height 0.3s ease,
 			opacity 0.25s ease,
-			margin 0.3s ease;
+			visibility 0s linear 0.25s;
 	}
 
 	/* .details рендерится через set:html — build-time скоуп на эти <a> не вешается */
@@ -308,8 +322,10 @@ const events: { date: string; title: string; details?: string }[] = [
 	.entry:hover .details,
 	.entry:focus-within .details,
 	.entry:focus .details {
-		max-height: 12em;
 		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transition: opacity 0.25s ease;
 	}
 
 	/* сворачивание "сейчас" и прорастание линии таймлайна при скролле */
@@ -356,7 +372,7 @@ const events: { date: string; title: string; details?: string }[] = [
 		.bridge,
 		.timeline,
 		.timeline::before {
-			transition: none;
+			transition: none !important;
 			animation: none !important;
 		}
 	}
