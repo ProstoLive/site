@@ -1,0 +1,25 @@
+~version: "2.1"
+
+?path: /blog/[^/]+/
+
+$main: //main
+
+title: $main//h1[1]
+body:  $main//div[@class="content"]
+
+author: ".redkiy"
+
+@datetime(0): //meta[@property="article:published_time"]/@content
+published_date: $@
+
+description: //meta[@name="description"]/@content
+
+cover: $main//div[@class="cover"]//img
+
+image_url: $cover/self::img/@src
+
+@before(<i>): $body//span[@class="katex"]
+@append("Этот блок невозможно отобразить, смотрите оригинал этой страницы на сайте"): $@
+@remove: $body//span[@class="katex"]
+
+@replace_tag(<figure>): $body//p[img]

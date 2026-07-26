@@ -11,8 +11,8 @@ interface Props {
 }
 
 const {
-	title = 'Артём',
-	description = 'Личный сайт Артёма',
+	title = '.redkiy',
+  description = 'Пространство, состоящее из моей жизни, программирования и многого другого',
 	image,
 	type = 'website',
 	publishedTime,
@@ -20,11 +20,7 @@ const {
 } = Astro.props;
 
 const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
-
-// у страниц и постов без обложки превью в мессенджерах всё равно должно быть
-// с картинкой — подставляем общую для сайта
-const ogImage = image ?? '/og-default.jpg';
-const absoluteImage = Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
+const absoluteImage = image && Astro.site ? new URL(image, Astro.site).href : image;
 ---
 
 <!doctype html>
@@ -51,7 +47,7 @@ const absoluteImage = Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
 
 		<!-- Open Graph -->
 		<meta property="og:type" content={type} />
-		<meta property="og:site_name" content="Артём" />
+		<meta property="og:site_name" content=".redkiy" />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		{canonicalURL && <meta property="og:url" content={canonicalURL} />}
