@@ -229,6 +229,7 @@ const events: { date: string; title: string; details?: string }[] = [
 		text-align: right;
 		padding-right: 8px;
 		position: relative;
+		min-width: 0;
 	}
 
 	.entry-right .content {
@@ -298,6 +299,7 @@ const events: { date: string; title: string; details?: string }[] = [
 		font-size: 17px;
 		line-height: 1.6;
 		color: var(--text);
+		overflow-wrap: break-word;
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -401,6 +403,17 @@ const events: { date: string; title: string; details?: string }[] = [
 	@media screen and (max-width: 640px) {
 		.present-text {
 			font-size: 26px;
+		}
+
+		/* центрированный хиро-блок и левый таймлайн — разные оси
+		   выравнивания, декоративные линии между ними неизбежно выглядят
+		   несостыкованно. Проще убрать их и оставить только текст-переход */
+		.bridge-line {
+			display: none;
+		}
+
+		.lead {
+			margin: 2.5em 0;
 		}
 
 		.entry,
