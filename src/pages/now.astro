@@ -377,6 +377,24 @@ const events: { date: string; title: string; details?: string }[] = [
 		}
 	}
 
+	/* на touch-устройствах нет настоящего hover — тап по .entry фокусирует
+	   его, а фокус не снимается скроллом, из-за чего несколько оверлеев
+	   могут остаться открытыми одновременно и наложиться друг на друга.
+	   Поэтому здесь .details просто всегда видна в потоке, без раскрытия */
+	@media (hover: none) {
+		.details {
+			position: static;
+			opacity: 1;
+			visibility: visible;
+			pointer-events: auto;
+			margin: 0.5em 0 0;
+			padding: 0;
+			border: none;
+			background: none;
+			transition: none;
+		}
+	}
+
 	@media screen and (max-width: 640px) {
 		.present-text {
 			font-size: 26px;
