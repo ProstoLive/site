@@ -26,6 +26,9 @@ export async function GET(context) {
 		.map((post) => {
 			const link = `${site}/blog/${post.id}/`;
 			const updated = (post.data.updatedDate ?? post.data.pubDate).toISOString();
+			const categories = post.data.tags
+				.map((tag) => `\n\t\t<category term="${escapeXml(tag)}" />`)
+				.join('');
 			return `
 	<entry>
 		<title>${escapeXml(post.data.title)}</title>
@@ -33,7 +36,7 @@ export async function GET(context) {
 		<id>${link}</id>
 		<published>${post.data.pubDate.toISOString()}</published>
 		<updated>${updated}</updated>
-		<summary>${escapeXml(post.data.description)}</summary>
+		<summary>${escapeXml(post.data.description)}</summary>${categories}
 	</entry>`;
 		})
 		.join('');
