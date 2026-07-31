@@ -1,5 +1,7 @@
 ---
 import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
 	title?: string;
@@ -71,7 +73,9 @@ const absoluteImage = image && Astro.site ? new URL(image, Astro.site).href : im
 	</head>
 	<body>
 		<Navbar />
+		<ThemeToggle />
 		<slot />
+		<Footer />
 	</body>
 </html>
 

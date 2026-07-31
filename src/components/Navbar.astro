@@ -68,6 +68,12 @@ function isActive(href: string) {
 	}
 
 	@media screen and (max-width: 480px) {
+		/* справа над навбаром висит кнопка темы (см. ThemeToggle) —
+		   резервируем под неё место, чтобы пункты меню не заезжали под неё */
+		#navbar {
+			padding-right: 64px;
+		}
+
 		ul {
 			flex-wrap: wrap;
 			justify-content: center;
