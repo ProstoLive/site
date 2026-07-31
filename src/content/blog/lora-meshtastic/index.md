@@ -5,6 +5,7 @@ description: 'Mesh-сети устойчивы к любым ограничен�
 cover: ./meshtastic.jpg
 tags:
     - Программирование
+syndicate: true
 ---  
 
 ## Введение   

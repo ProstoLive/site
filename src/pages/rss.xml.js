@@ -16,6 +16,9 @@ export async function GET(context) {
 			pubDate: post.data.pubDate,
 			link: `/blog/${post.id}/`,
 			categories: post.data.tags,
+			...(post.data.syndicate === true
+				? { customData: '<syndicate>true</syndicate>' }
+				: {}),
 		})),
 	});
 }
