@@ -7,7 +7,7 @@ tags:
     - IndieWeb
 pubDate: 2026-07-28
 cover: ./1.png
-draft: true
+syndicate: true
 ---
 
 ## Что это такое?
