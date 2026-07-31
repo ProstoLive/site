@@ -45,6 +45,16 @@ const absoluteImage = image && Astro.site ? new URL(image, Astro.site).href : im
 				/>
 			)
 		}
+		{
+			Astro.site && (
+				<link
+					rel="alternate"
+					type="application/atom+xml"
+					title={title}
+					href={new URL('atom.xml', Astro.site)}
+				/>
+			)
+		}
 		<title>{title}</title>
 
 		<!-- Open Graph -->
