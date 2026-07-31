@@ -283,8 +283,28 @@
 				);
 			}
 
-			function loop() {
-				step();
+			// физика считается фиксированным шагом (60 Гц) независимо от частоты
+			// обновления монитора — иначе step() на 144 Гц вызывается вдвое чаще
+			// и лампа буквально падает и качается быстрее, чем на 60 Гц
+			const FIXED_DT = 1000 / 60;
+			const MAX_STEPS = 5; // страховка от "спирали смерти" после смены вкладки
+			let accumulator = 0;
+			let lastTime = performance.now();
+
+			function loop(now: number) {
+				let frameTime = now - lastTime;
+				lastTime = now;
+				if (frameTime > 250) frameTime = 250;
+				accumulator += frameTime;
+
+				let steps = 0;
+				while (accumulator >= FIXED_DT && steps < MAX_STEPS) {
+					step();
+					accumulator -= FIXED_DT;
+					steps++;
+				}
+				if (steps === MAX_STEPS) accumulator = 0;
+
 				render();
 				requestAnimationFrame(loop);
 			}
