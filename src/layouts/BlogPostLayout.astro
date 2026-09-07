@@ -259,6 +259,68 @@ function formatDate(date: Date) {
 		font-weight: 700;
 	}
 
+	/* сноски: markdown-компилятор оборачивает номер в <sup><a data-footnote-ref>,
+	   ссылка иначе унаследовала бы обычный подчёркнутый стиль .content a
+	   и сливалась бы с обычными ссылками в тексте */
+	.content :global(sup) {
+		font-size: 0.7em;
+	}
+
+	.content :global(a[data-footnote-ref]) {
+		color: var(--accent);
+		text-decoration: none;
+		font-weight: 600;
+		padding: 0 1px;
+	}
+
+	.content :global(a[data-footnote-ref])::before {
+		content: '[';
+	}
+
+	.content :global(a[data-footnote-ref])::after {
+		content: ']';
+	}
+
+	.content :global(a[data-footnote-ref]:hover) {
+		color: var(--accent-deep);
+		text-decoration: underline;
+	}
+
+	.content :global(.footnotes) {
+		margin-top: 2.5em;
+		padding-top: 1.2em;
+		border-top: 1px solid var(--border);
+	}
+
+	.content :global(#footnote-label) {
+		font-size: 21px;
+		font-weight: 600;
+		color: var(--ink);
+		margin: 0 0 0.7em;
+	}
+
+	.content :global(.footnotes li) {
+		margin-bottom: 0.3em;
+		font-size: 16px;
+	}
+
+	/* убираем стандартный нижний отступ .content p внутри пункта сноски —
+	   иначе он "просвечивает" через li (margin collapsing) и делает
+	   расстояние между источниками визуально в разы больше, чем 0.3em выше */
+	.content :global(.footnotes li p) {
+		margin: 0;
+	}
+
+	.content :global(a[data-footnote-backref]) {
+		color: var(--text);
+		text-decoration: none;
+		margin-left: 4px;
+	}
+
+	.content :global(a[data-footnote-backref]:hover) {
+		color: var(--accent);
+	}
+
 	@media screen and (max-width: 640px) {
 		h1 {
 			font-size: 28px;
