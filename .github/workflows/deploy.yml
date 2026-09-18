@@ -17,3 +17,22 @@ jobs:
             git pull origin main
             npm ci
             npm run build
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Post newly published articles to Telegram
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_AFTER: ${{ github.event.after }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node .github/scripts/notify-telegram.mjs

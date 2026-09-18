@@ -12,6 +12,10 @@ export default defineConfig({
 			remarkPlugins: [remarkMath],
 			rehypePlugins: [rehypeKatex],
 			smartypants: { dashes: 'oldschool' },
+			remarkRehype: {
+				footnoteLabel: 'Источники',
+				footnoteBackLabel: 'Вернуться к тексту',
+			},
 		}),
 	},
 });
