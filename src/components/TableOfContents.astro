@@ -1,0 +1,217 @@
+---
+interface Heading {
+	depth: number;
+	slug: string;
+	text: string;
+}
+
+interface Props {
+	headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const items = headings.filter(
+	(h) => (h.depth === 2 || h.depth === 3) && h.slug !== 'footnote-label',
+);
+---
+
+{
+	items.length > 1 && (
+		<nav class="toc" aria-label="Содержание статьи">
+			<p class="toc-label">Содержание</p>
+			<ul>
+				{items.map((h) => (
+					<li class={`depth-${h.depth}`}>
+						<a href={`#${h.slug}`} data-slug={h.slug}>
+							{h.text}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+	)
+}
+
+<style>
+	.toc {
+		position: fixed;
+		top: 50%;
+		right: max(24px, calc((100vw - 720px) / 2 - 260px));
+		transform: translateY(-50%);
+		width: 220px;
+		max-height: 70vh;
+		overflow-y: auto;
+	}
+
+	.toc-label {
+		margin: 0 0 0.6em;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--muted);
+	}
+
+	.toc ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.toc li {
+		margin: 0;
+	}
+
+	.toc li.depth-3 a {
+		padding-left: 22px;
+		font-size: 12px;
+	}
+
+	.toc a {
+		display: block;
+		padding: 6px 10px;
+		border-radius: 8px;
+		font-size: 13px;
+		line-height: 1.4;
+		color: var(--muted);
+		text-decoration: none;
+		transition:
+			color 0.2s ease,
+			background-color 0.2s ease;
+	}
+
+	.toc a:hover {
+		color: var(--text);
+	}
+
+	.toc a.active {
+		color: var(--accent);
+		background: rgba(180, 83, 9, 0.1);
+		font-weight: 600;
+	}
+
+	/* от 1180px вниз рядом с колонкой контента (720px) не остаётся места
+	   под фиксированный TOC без наложения — на мобильных он и не нужен */
+	@media screen and (max-width: 1180px) {
+		.toc {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc a[data-slug]'));
+
+	if (links.length > 0) {
+		const headingEls = links
+			.map((link) => document.getElementById(link.dataset.slug!))
+			.filter((el): el is HTMLElement => el !== null);
+
+		const setActive = (id: string | null) => {
+			for (const link of links) {
+				link.classList.toggle('active', link.dataset.slug === id);
+			}
+		};
+
+		// смещение совпадает с триггерной линией наблюдателя ниже — после скролла
+		// заголовок останавливается ровно там, где IntersectionObserver считает его «текущим»
+		const bandOffset = () => window.innerHeight * 0.2;
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		// плавное ускорение в начале и замедление в конце — нативный behavior:'smooth'
+		// использует фиксированную браузерную кривую, которую нельзя настроить,
+		// поэтому анимируем скролл сами через rAF. quint даёт заметно более длинные
+		// разгон/торможение по краям (и короче «крейсерскую» середину), чем cubic
+		const easeInOutQuint = (t: number) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2);
+
+		let cancelScroll: (() => void) | null = null;
+
+		const smoothScrollTo = (top: number) => {
+			cancelScroll?.();
+
+			const startY = window.scrollY;
+			const distance = top - startY;
+			const duration = 600;
+			const startTime = performance.now();
+			let cancelled = false;
+
+			const stop = () => {
+				cancelled = true;
+				window.removeEventListener('wheel', stop);
+				window.removeEventListener('touchstart', stop);
+				window.removeEventListener('keydown', stop);
+			};
+			cancelScroll = stop;
+
+			// пользователь начал скроллить сам — не боремся с ним доигрывая анимацию
+			window.addEventListener('wheel', stop, { passive: true, once: true });
+			window.addEventListener('touchstart', stop, { passive: true, once: true });
+			window.addEventListener('keydown', stop, { once: true });
+
+			const step = (now: number) => {
+				if (cancelled) return;
+				const elapsed = Math.min((now - startTime) / duration, 1);
+				window.scrollTo(0, startY + distance * easeInOutQuint(elapsed));
+				if (elapsed < 1) {
+					requestAnimationFrame(step);
+				} else {
+					stop();
+				}
+			};
+
+			requestAnimationFrame(step);
+		};
+
+		for (const link of links) {
+			link.addEventListener('click', (event) => {
+				const slug = link.dataset.slug!;
+				const target = document.getElementById(slug);
+				if (!target) return;
+
+				event.preventDefault();
+				const top = target.getBoundingClientRect().top + window.scrollY - bandOffset();
+
+				if (reduceMotion) {
+					window.scrollTo(0, top);
+				} else {
+					smoothScrollTo(top);
+				}
+
+				setActive(slug);
+				history.pushState(null, '', `#${slug}`);
+			});
+		}
+
+		// тонкая полоса-триггер на 20% высоты экрана от верха — заголовок
+		// становится «текущим», как только пересекает её сверху вниз (или снизу вверх)
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						setActive(entry.target.id);
+					}
+				}
+			},
+			{ rootMargin: '-20% 0px -79% 0px', threshold: 0 }
+		);
+
+		headingEls.forEach((el) => observer.observe(el));
+
+		// если страница открыта не с самого верха (например, по прямой ссылке
+		// на середину статьи), наблюдатель ничего сам не пересечёт — находим
+		// ближайший заголовок выше триггерной линии вручную
+		const bandTop = window.innerHeight * 0.2;
+		let initial: string | null = null;
+
+		for (const el of headingEls) {
+			if (el.getBoundingClientRect().top <= bandTop) {
+				initial = el.id;
+			}
+		}
+
+		setActive(initial);
+	}
+</script>
