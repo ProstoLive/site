@@ -1,0 +1,14 @@
+[Unit]
+Description=Water counter for artredkiy.com
+After=network.target
+
+[Service]
+# путь к репозиторию на VPS поправить под свой (тот же, что в секрете DIR)
+ExecStart=/usr/bin/node /srv/astro-site/server/water/server.mjs
+Environment=WATER_DATA=/var/lib/water/count.json
+DynamicUser=yes
+StateDirectory=water
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Plant from '../components/Plant.astro';
 
 const tags = [
 	'Видеоигры',
@@ -48,6 +49,8 @@ const rows = rowSpeeds.map((speed, i) => {
 					<br />
 					Но прежде всего я <strong>человек</strong>.<span class="cursor" aria-hidden="true"></span>
 				</p>
+
+				<Plant />
 			</div>
 
 			<div class="page-content">
@@ -222,6 +225,7 @@ const rows = rowSpeeds.map((speed, i) => {
 	/* --- профиль (перенесено со страницы /about) --- */
 
 	.profile-header {
+		position: relative;
 		display: grid;
 		grid-template-columns: auto 1fr;
 		gap: 40px;

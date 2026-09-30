@@ -17,6 +17,7 @@ jobs:
             git pull origin main
             npm ci
             npm run build
+            sudo systemctl restart water
 
       - uses: actions/checkout@v4
         with:

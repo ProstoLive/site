@@ -1,0 +1,342 @@
+---
+// параметры каждой капли (дальность, высота, скорость, размер) скрипт задаёт заново на каждый полив
+const DROPS = 8;
+---
+
+<div class="plant-wrapper">
+	<div class="plant-stat" aria-live="polite" hidden>
+		На этой неделе полит <b class="plant-count">0</b> раз
+	</div>
+
+	<img class="can" src="/watering-can.webp" alt="" width="1156" height="728" aria-hidden="true" draggable="false" />
+	{Array.from({ length: DROPS }, () => <span class="drop" aria-hidden="true" />)}
+
+	<button class="plant" type="button" aria-label="Полить цветок">
+		<img src="/plant.webp" alt="" width="736" height="891" draggable="false" />
+	</button>
+</div>
+
+<style>
+	.plant-wrapper {
+		position: absolute;
+		right: 0;
+		bottom: 0; /* нижняя граница padding-box — ровно на линии border-bottom */
+		width: 91px; /* 110px × 736/891 — пропорции plant.webp */
+		height: 110px;
+	}
+
+	.plant {
+		display: block;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+		transform-origin: bottom;
+		transition: transform 75ms ease-in-out;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.plant img {
+		display: block;
+		height: 100%;
+		width: auto;
+		user-select: none;
+	}
+
+	.plant:hover {
+		transform: scale(1.03);
+	}
+
+	.plant:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 4px;
+		border-radius: 6px;
+	}
+
+	/* пока идёт цикл (полив + табличка), цветок нажать нельзя */
+	.plant[aria-disabled='true'] {
+		cursor: default;
+	}
+
+	.plant[aria-disabled='true']:hover {
+		transform: none;
+	}
+
+	/* --- лейка: подъезжает, наклоняется, поливает и уезжает --- */
+
+	.can {
+		position: absolute;
+		left: -62px;
+		top: -27px;
+		width: 72px;
+		height: auto;
+		z-index: 2;
+		opacity: 0;
+		pointer-events: none;
+		transform-origin: 35% 65%; /* примерно центр корпуса лейки */
+	}
+
+	.watering .can {
+		animation: can var(--water-ms) ease-in-out both;
+	}
+
+	@keyframes can {
+		0% {
+			opacity: 0;
+			transform: translate(-14px, -8px) rotate(0);
+		}
+		15% {
+			opacity: 1;
+			transform: translate(0, 0) rotate(0);
+		}
+		32%,
+		82% {
+			opacity: 1;
+			transform: translate(0, 0) rotate(30deg);
+		}
+		94% {
+			opacity: 1;
+			transform: translate(0, 0) rotate(0);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(-14px, -8px) rotate(0);
+		}
+	}
+
+	/* --- капли вылетают из носика горизонтально и падают дугой на цветок --- */
+
+	/* .drop — точка-якорь у носика лейки (после наклона на 30° он смотрит вправо).
+	   Двигается по параболе: по X равномерно (--dx), по Y с ускорением («гравитация»).
+	   Сама форма капли рисуется в ::before, чтобы её поворот не смешивался с движением.
+	   Все --переменные скрипт выставляет случайно на каждый полив, у каждой капли свои */
+	.drop {
+		position: absolute;
+		left: calc(18px + var(--sx, 0px));
+		top: var(--sy, 0px);
+		width: 0;
+		height: 0;
+		opacity: 0;
+		pointer-events: none;
+		z-index: 2;
+	}
+
+	.drop::before {
+		content: '';
+		position: absolute;
+		left: -2.5px;
+		top: -5px;
+		width: 5px;
+		height: 10px;
+		border-radius: 50%;
+		background: #5b8fb9;
+		scale: var(--s, 1);
+	}
+
+	.watering .drop {
+		animation:
+			drop-x var(--dur, 0.5s) linear both,
+			drop-y var(--dur, 0.5s) cubic-bezier(0.5, 0, 1, 0.5) both,
+			drop-fade var(--dur, 0.5s) linear both;
+		animation-delay: var(--delay, 1s);
+	}
+
+	/* капля вытянута вдоль скорости: сначала летит почти горизонтально, к концу — почти вертикально */
+	.watering .drop::before {
+		animation: drop-tilt var(--dur, 0.5s) linear both;
+		animation-delay: var(--delay, 1s);
+	}
+
+	@keyframes drop-x {
+		from {
+			translate: 0 0;
+		}
+		to {
+			translate: var(--dx, 28px) 0;
+		}
+	}
+
+	@keyframes drop-y {
+		from {
+			transform: translateY(0);
+		}
+		to {
+			transform: translateY(var(--dy, 52px));
+		}
+	}
+
+	@keyframes drop-fade {
+		0% {
+			opacity: 0;
+		}
+		12%,
+		85% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes drop-tilt {
+		0% {
+			rotate: -80deg;
+		}
+		25% {
+			rotate: var(--a25, -47deg);
+		}
+		50% {
+			rotate: var(--a50, -28deg);
+		}
+		100% {
+			rotate: var(--a100, -15deg);
+		}
+	}
+
+	/* --- табличка --- */
+
+	.plant-stat {
+		position: absolute;
+		left: calc(50% - 67.5px); /* середина обёртки минус половина ширины таблички */
+		bottom: calc(100% + 12px);
+		width: 135px;
+		padding: 7px;
+		box-sizing: border-box;
+		background: var(--bg);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		font-size: 14px;
+		line-height: 1.3;
+		color: var(--text);
+		text-align: center;
+		pointer-events: none;
+		opacity: 0;
+		transform: translateY(10px);
+		transition:
+			opacity 0.4s ease-in-out,
+			transform 0.4s ease-in-out;
+	}
+
+	.plant-stat[hidden] {
+		display: block;
+		visibility: hidden;
+	}
+
+	.show-stat .plant-stat {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.watering .can,
+		.watering .drop,
+		.watering .drop::before {
+			animation: none;
+		}
+
+		.plant,
+		.plant-stat {
+			transition: none;
+		}
+	}
+
+	@media screen and (max-width: 700px) {
+		.plant-wrapper {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	const WATER_MS = 3000; // длительность анимации с лейкой (передаётся в CSS как --water-ms)
+	const STAT_MS = 3500; // сколько висит табличка
+	const FADE_MS = 400; // должно совпадать с transition у .plant-stat
+
+	const wrapper = document.querySelector<HTMLElement>('.plant-wrapper');
+	const button = wrapper?.querySelector<HTMLButtonElement>('.plant');
+	const stat = wrapper?.querySelector<HTMLElement>('.plant-stat');
+	const countEl = wrapper?.querySelector<HTMLElement>('.plant-count');
+	const drops = Array.from(wrapper?.querySelectorAll<HTMLElement>('.drop') ?? []);
+
+	const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	async function water(): Promise<number | null> {
+		try {
+			const res = await fetch('/api/water', { method: 'POST' });
+			if (!res.ok && res.status !== 429) return null;
+			const data = await res.json();
+			return Number.isInteger(data.count) ? data.count : null;
+		} catch {
+			return null; // сервис недоступен — цветок всё равно можно полить, просто без числа
+		}
+	}
+
+	wrapper?.style.setProperty('--water-ms', `${WATER_MS}ms`);
+
+	const rand = (min: number, max: number) => min + Math.random() * (max - min);
+
+	const shuffle = <T,>(items: T[]) => items.sort(() => Math.random() - 0.5);
+
+	// капли расходятся веером: у каждой своя «скорость вылета» t (0…1, равномерно, в случайном порядке
+	// относительно времени старта). Быстрая (t→1) летит дальше и приземляется выше по кроне, медленная
+	// (t→0) падает ближе и глубже — места приземления расходятся по всему цветку, а не по одной линии
+	function scatterDrops() {
+		const count = drops.length;
+		// стартовые высоты равномерно по розетке (от −5 до +5px), но в случайном порядке
+		const startY = shuffle(Array.from(drops, (_, i) => -5 + (10 * i) / (count - 1)));
+		const speeds = shuffle(Array.from(drops, (_, i) => i / (count - 1)));
+
+		drops.forEach((drop, i) => {
+			const t = speeds[i];
+			const dx = 20 + 24 * t + rand(-2, 2);
+			const dy = 46 + 18 * (1 - t) + rand(-3, 3);
+			// угол вытянутости капли = направление её скорости в точках 25%, 50%, 100% пути
+			const angle = (k: number) => `${-(Math.atan(dx / (k * dy)) * 180) / Math.PI}deg`;
+			// старты равномерно по времени с небольшим дрожанием
+			const delay = (0.34 + (0.4 * i) / (count - 1) + rand(-0.025, 0.025)) * WATER_MS;
+
+			drop.style.setProperty('--dx', `${dx}px`);
+			drop.style.setProperty('--dy', `${dy}px`);
+			drop.style.setProperty('--sx', `${rand(-1, 1)}px`);
+			drop.style.setProperty('--sy', `${startY[i] + rand(-1, 1)}px`);
+			drop.style.setProperty('--s', `${rand(0.9, 1.1)}`);
+			drop.style.setProperty('--dur', `${rand(0.48, 0.54)}s`);
+			drop.style.setProperty('--delay', `${delay}ms`);
+			drop.style.setProperty('--a25', angle(0.5));
+			drop.style.setProperty('--a50', angle(1));
+			drop.style.setProperty('--a100', angle(2));
+		});
+	}
+
+	let busy = false;
+
+	button?.addEventListener('click', async () => {
+		if (busy || !wrapper || !stat || !countEl) return;
+		busy = true;
+		button.setAttribute('aria-disabled', 'true');
+
+		try {
+			// 1. полив: лейка + запрос к серверу идут параллельно, ждём обоих
+			scatterDrops();
+			wrapper.classList.add('watering');
+			const [count] = await Promise.all([water(), sleep(WATER_MS)]);
+			wrapper.classList.remove('watering');
+
+			// 2. табличка — только после окончания полива
+			if (count !== null) {
+				countEl.textContent = count.toLocaleString('ru-RU');
+				stat.hidden = false;
+				wrapper.classList.add('show-stat');
+				await sleep(STAT_MS);
+				wrapper.classList.remove('show-stat');
+				await sleep(FADE_MS);
+			}
+		} finally {
+			// 3. разблокировка — строго после того, как табличка скрылась
+			busy = false;
+			button.removeAttribute('aria-disabled');
+		}
+	});
+</script>

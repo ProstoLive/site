@@ -7,6 +7,12 @@ import rehypeKatex from 'rehype-katex';
 export default defineConfig({
 	site: 'https://artredkiy.com',
 	integrations: [mdx()],
+	vite: {
+		server: {
+			// в проде /api проксирует Caddy, локально — сам dev-сервер (node server/water/server.mjs)
+			proxy: { '/api': 'http://127.0.0.1:3001' },
+		},
+	},
 	markdown: {
 		processor: unified({
 			remarkPlugins: [remarkMath],
