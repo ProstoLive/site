@@ -1,0 +1,352 @@
+---
+---
+
+<button
+	type="button"
+	class="autumn-toggle"
+	id="autumnToggle"
+	aria-label="Листопад"
+	aria-pressed="false"
+>
+	<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+		<path
+			d="M12 1 13.6 4.6 15.8 3.8 15 8.4 18.8 6.2 18.2 8.6 22.5 9 20 11.6 21.2 13 16.6 13.6 17.4 16.2 13 14.8 12.6 19 12.6 23 11.4 23 11.4 19 11 14.8 6.6 16.2 7.4 13.6 2.8 13 4 11.6 1.5 9 5.8 8.6 5.2 6.2 9 8.4 8.2 3.8 10.4 4.6Z"
+		/>
+	</svg>
+</button>
+
+<!-- контейнер для листьев: сами листья создаёт скрипт, pointer-events: none —
+     чтобы они не мешали кликать по сайту под ними -->
+<div class="leaves" id="leaves" aria-hidden="true"></div>
+
+<!-- формы листьев: скрипт клонирует отсюда <svg> для каждого нового листа -->
+<template id="leafShapes">
+	<!-- клён -->
+	<svg viewBox="0 0 24 24">
+		<path
+			d="M12 1 13.6 4.6 15.8 3.8 15 8.4 18.8 6.2 18.2 8.6 22.5 9 20 11.6 21.2 13 16.6 13.6 17.4 16.2 13 14.8 12.6 19 12.6 23 11.4 23 11.4 19 11 14.8 6.6 16.2 7.4 13.6 2.8 13 4 11.6 1.5 9 5.8 8.6 5.2 6.2 9 8.4 8.2 3.8 10.4 4.6Z"
+		/>
+	</svg>
+	<!-- вытянутый лист (ива, вишня) -->
+	<svg viewBox="0 0 24 24">
+		<path d="M12 1C17.5 5 18.5 13 12 20.5 5.5 13 6.5 5 12 1Z" />
+		<path class="vein" d="M12 3.5V23" />
+	</svg>
+	<!-- круглый лист (берёза, липа) -->
+	<svg viewBox="0 0 24 24">
+		<path d="M12 2C17 4 20 9 18.5 14 17 18 14 19.5 12 20.5 10 19.5 7 18 5.5 14 4 9 7 4 12 2Z" />
+		<path class="vein" d="M12 4.5V23" />
+	</svg>
+</template>
+
+<style>
+	/* стоит вплотную слева от кнопки темы (см. ThemeToggle: right 16px, ширина 40px) */
+	.autumn-toggle {
+		position: fixed;
+		top: 16px;
+		right: 64px;
+		z-index: 30;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--bg);
+		color: var(--text);
+		cursor: pointer;
+		transition:
+			color 0.2s ease,
+			background 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.autumn-toggle:hover {
+		color: var(--accent);
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	.autumn-toggle[aria-pressed='true'] {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+
+	/* на телефоне — под кнопкой темы, чтобы не отбирать место у навбара */
+	@media screen and (max-width: 480px) {
+		.autumn-toggle {
+			top: 64px;
+			right: 16px;
+		}
+	}
+
+	/* лежит на самой странице (absolute от её верха, а не fixed к окну), поэтому
+	   скроллится вместе с ней. Высоту — на весь сайт — выставляет скрипт;
+	   overflow: hidden обрезает листья у нижнего края сайта и не даёт
+	   покачиванию у боковых краёв вызвать горизонтальный скролл.
+	   z-index — над оверлеем «тёмной темы» (20), но под кнопками (30) */
+	.leaves {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 0;
+		z-index: 25;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	/* .leaf* создаются в рантайме скриптом, поэтому не получают Astro-скоуп
+	   (data-astro-cid-*) — без :global() эти правила бы их не видели.
+	   Движение разложено по трём вложенным уровням, чтобы анимации не
+	   перетирали друг другу transform:
+	     .leaf       — падение сверху вниз
+	     .leaf-sway  — покачивание влево-вправо
+	     svg         — вращение и «переворачивание» листа в воздухе */
+	/* все листья стартуют чуть выше верха сайта (= START_OFFSET в скрипте).
+	   Отрицательная задержка --age запускает падение «с середины» — так лист
+	   оказывается там, куда он успел бы долететь, если бы листопад шёл давно */
+	:global(.leaf) {
+		position: absolute;
+		top: -48px;
+		left: var(--x);
+		width: var(--size);
+		height: var(--size);
+		animation: leaf-fall var(--fall) linear var(--age) forwards;
+	}
+
+	:global(.leaf-sway) {
+		width: 100%;
+		height: 100%;
+		animation: leaf-sway var(--sway) ease-in-out infinite alternate;
+		animation-delay: var(--sway-delay);
+	}
+
+	:global(.leaf svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		fill: var(--color);
+		animation:
+			leaf-spin var(--spin) linear infinite,
+			leaf-flip var(--flip) ease-in-out infinite alternate;
+	}
+
+	:global(.leaf .vein) {
+		fill: none;
+		stroke: rgba(0, 0, 0, 0.25);
+		stroke-width: 1;
+	}
+
+	@keyframes leaf-fall {
+		from {
+			transform: translateY(0);
+		}
+		to {
+			transform: translateY(var(--dist));
+		}
+	}
+
+	@keyframes leaf-sway {
+		from {
+			transform: translateX(calc(-1 * var(--amp)));
+		}
+		to {
+			transform: translateX(var(--amp));
+		}
+	}
+
+	/* rotate и transform — разные свойства, поэтому две анимации на одном svg
+	   складываются, а не перебивают друг друга (тот же приём, что у капель в Plant) */
+	@keyframes leaf-spin {
+		from {
+			rotate: var(--r0);
+		}
+		to {
+			rotate: calc(var(--r0) + var(--dir) * 360deg);
+		}
+	}
+
+	@keyframes leaf-flip {
+		from {
+			transform: rotateX(0);
+		}
+		to {
+			transform: rotateX(70deg);
+		}
+	}
+
+	/* без покачиваний и вращения — листья просто медленно опускаются */
+	@media (prefers-reduced-motion: reduce) {
+		:global(.leaf-sway),
+		:global(.leaf svg) {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	const TICK_MS = 200; // как часто скрипт досыпает новые листья
+	const START_OFFSET = 48; // листья стартуют чуть выше верха сайта (= top: -48px в CSS)
+	const MAX_SIZE = 30; // px, наибольший размер листа
+	const SPEED_MIN = 40; // px/с — медленно, экран ноутбука лист проходит за 12–20 секунд
+	const SPEED_MAX = 65;
+	// плотность — листьев на квадратный пиксель: ~25 на мегапиксель, это пара десятков в окне ноутбука
+	const DENSITY = 25 / 1_000_000;
+	// предохранитель для производительности на очень длинных страницах: если при обычной
+	// плотности листьев вышло бы больше, плотность равномерно снижается по всей странице
+	const MAX_TOTAL = 400;
+	const COLORS = ['#c2410c', '#d97706', '#b45309', '#ca8a04', '#9a3412', '#a16207', '#dc2626'];
+
+	const button = document.getElementById('autumnToggle');
+	const container = document.getElementById('leaves');
+	const shapes = document.querySelector<HTMLTemplateElement>('#leafShapes');
+	const shapeList = Array.from(shapes?.content.querySelectorAll('svg') ?? []);
+
+	const rand = (min: number, max: number) => min + Math.random() * (max - min);
+	const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
+
+	// Модель листопада — равномерный поток: листья рождаются над верхом сайта
+	// с постоянной частотой и падают до самого низа. Тогда в любой момент они
+	// распределены по странице равномерно, где бы ни был читатель.
+	//
+	// Скорость у каждого листа своя, от SPEED_MIN до SPEED_MAX. Медленный лист
+	// дольше остаётся на странице, поэтому среди летящих листьев медленных больше,
+	// чем среди только что родившихся: доля листьев со скоростью v ∝ 1/v.
+	// Отсюда два вывода:
+
+	// 1) средняя «длительность пребывания на пикселе» 1/v по рождённым листьям —
+	//    через неё считается частота рождения (см. birthRate)
+	const MEAN_INV_SPEED = Math.log(SPEED_MAX / SPEED_MIN) / (SPEED_MAX - SPEED_MIN);
+
+	// 2) скорость для листа, который «уже летел» (стартовое заполнение) — выбирается
+	//    с вероятностью ∝ 1/v, а не равномерно, иначе медленных было бы мало
+	const flyingSpeed = () => SPEED_MIN * (SPEED_MAX / SPEED_MIN) ** Math.random();
+	const newbornSpeed = () => rand(SPEED_MIN, SPEED_MAX);
+
+	function density(width: number, height: number) {
+		return Math.min(DENSITY, MAX_TOTAL / (width * height));
+	}
+
+	// листьев в секунду: за время жизни (height / v) их родится rate · height · E[1/v],
+	// а на странице должно быть density · width · height — отсюда rate
+	function birthRate(width: number, height: number) {
+		return (density(width, height) * width) / MEAN_INV_SPEED;
+	}
+
+	// растягивает контейнер на высоту всего сайта и возвращает её. Перед замером
+	// контейнер схлопывается: иначе он мерил бы сам себя, и сайт, раз выросший
+	// (например, при повороте телефона), уже никогда не смог бы стать короче
+	function fitToPage(container: HTMLElement) {
+		container.style.height = '0';
+		const height = document.documentElement.scrollHeight;
+		container.style.height = `${height}px`;
+		return height;
+	}
+
+	// лист, который летит уже age секунд. null — если за это время он бы уже упал
+	function createLeaf(speed: number, age: number, pageHeight: number) {
+		const dist = pageHeight + START_OFFSET;
+		const fall = dist / speed;
+		if (age >= fall) return null;
+
+		const leaf = document.createElement('div');
+		leaf.className = 'leaf';
+
+		const sway = document.createElement('div');
+		sway.className = 'leaf-sway';
+		sway.append(pick(shapeList).cloneNode(true));
+		leaf.append(sway);
+
+		const swayS = rand(2.5, 4.5);
+		const vars: Record<string, string> = {
+			'--x': `${rand(-2, 98)}%`,
+			'--dist': `${dist}px`,
+			'--fall': `${fall}s`,
+			'--age': `${-age}s`,
+			'--size': `${rand(16, MAX_SIZE)}px`,
+			'--color': pick(COLORS),
+			'--sway': `${swayS}s`,
+			'--sway-delay': `${-rand(0, swayS)}s`, // чтобы листья качались не в такт
+			'--amp': `${rand(20, 60)}px`,
+			'--spin': `${rand(6, 14)}s`,
+			'--dir': Math.random() < 0.5 ? '1' : '-1',
+			'--r0': `${rand(0, 360)}deg`,
+			'--flip': `${rand(1.5, 3)}s`,
+		};
+		for (const [name, value] of Object.entries(vars)) leaf.style.setProperty(name, value);
+
+		// лист долетел до низа сайта — убираем из DOM
+		leaf.addEventListener('animationend', (e) => {
+			if (!e.animationName.includes('leaf-fall')) return;
+			leaf.remove();
+			// листопад выключен и последний лист упал — отдаём странице её высоту обратно
+			if (timer === undefined && container?.childElementCount === 0) {
+				container.style.height = '0';
+			}
+		});
+
+		return leaf;
+	}
+
+	let timer: number | undefined;
+	let nextBirth = 0; // performance.now() рождения следующего листа
+
+	// рождает все листья, которым уже пора было родиться. Возраст каждого считается
+	// от его «положенного» момента, а не от момента вызова: таймер может опоздать
+	// (а в фоновой вкладке браузер вызывает его раз в минуту), но листья всё равно
+	// встанут ровно туда, куда долетели бы при идеальном таймере — без разрывов в потоке
+	function tick() {
+		if (!container) return;
+		const height = fitToPage(container);
+		const rate = birthRate(container.clientWidth, height);
+		if (!(rate > 0)) return;
+
+		const now = performance.now();
+		const batch = document.createDocumentFragment();
+		for (; nextBirth <= now; nextBirth += 1000 / rate) {
+			const leaf = createLeaf(newbornSpeed(), (now - nextBirth) / 1000, height);
+			if (leaf) batch.append(leaf);
+		}
+		container.append(batch);
+	}
+
+	// при включении сразу раскладываем листья по всей странице — как будто листопад
+	// идёт давно. Кроме видимой части: туда они должны прилететь сверху
+	function prefill(container: HTMLElement) {
+		const height = fitToPage(container);
+		const width = container.clientWidth;
+		const count = Math.round(density(width, height) * width * height);
+		const viewTop = window.scrollY;
+		const viewBottom = viewTop + window.innerHeight;
+
+		const batch = document.createDocumentFragment();
+		for (let i = 0; i < count; i++) {
+			const y = rand(-START_OFFSET, height);
+			if (y + MAX_SIZE > viewTop && y < viewBottom) continue;
+			const speed = flyingSpeed();
+			const leaf = createLeaf(speed, (y + START_OFFSET) / speed, height);
+			if (leaf) batch.append(leaf);
+		}
+		container.append(batch);
+	}
+
+	button?.addEventListener('click', () => {
+		if (!container || shapeList.length === 0) return;
+		const active = timer === undefined;
+
+		if (active) {
+			prefill(container);
+			nextBirth = performance.now();
+			tick();
+			timer = window.setInterval(tick, TICK_MS);
+		} else {
+			// новые листья больше не появляются, а уже летящие спокойно долетают до низа
+			window.clearInterval(timer);
+			timer = undefined;
+		}
+
+		button.setAttribute('aria-pressed', String(active));
+	});
+</script>
